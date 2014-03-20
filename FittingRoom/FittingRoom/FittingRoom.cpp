@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "FittingRoom.h"
 
+#include "glut.h"
 
 HINSTANCE hInst; // current instance
 TCHAR szTitle[MAX_LOADSTRING];	// The title bar text
@@ -35,12 +36,13 @@ HWND hWnd_Gallery;
 vector <FolderProps> folders;
 bool galleryWindowNeedsRefresh = false;
 TCHAR szWindowClass_Gallery[MAX_LOADSTRING] = L"szWindowClass_Gallery"; // the main window class name
+bool showCountdownWarning = false;
 
 BOOL CreateWindow_Gallery(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWindow);
 LRESULT CALLBACK WndProc_Gallery(HWND, UINT, WPARAM, LPARAM);
 void drawGallery(void * args);
 void findFoldersWithPictures();
-
+void takeSnapshots(void * args);
 
 // Session Window
 HDC hDc_Session;
@@ -64,19 +66,20 @@ void findPicturesInCurrentFolder();
 int CurrentTouchesCount = 0;
 vector <TOUCHINPUT> CurrentTouches;
 CamerasController Cameras;
+int snapshotWarningStatus = 0;
 // my declarations
 int GetTouchesResult();
 void TouchHandler(TOUCHINPUT touch);
 int InitializeOpenGL(HWND _hWnd, int monitorWidth, int monitorHeight);
 
 wchar_t *convertCharArrayToLPCWSTR(const char* charArray);
-int init_OpenGL(HWND hwnd);
-//Дополнительные настройки OpenGL
-void Init();
-//Изменение размеров окна
-void Resize(int width, int height);
+//int init_OpenGL(HWND hwnd);
+////Дополнительные настройки OpenGL
+//void Init();
+////Изменение размеров окна
+//void Resize(int width, int height);
 void calculateScaledImageSize(int placeholderW, int placeholderH, int originalW, int originalH, int* newW, int* newH);
-
+void output(GLfloat x, GLfloat y, char* text, float size);
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
@@ -636,29 +639,38 @@ void TouchHandler(TOUCHINPUT touch)
 void TouchEndHandler_Main()
 {	
 	int direction = GetTouchesResult();
-	switch(direction)
+	
+	
+	if (!showCountdownWarning)
 	{
-		case TOUCH_MOVEMENT_UP:
+		//if countdown and taking pictures process IS NOT active while registered new touches - handle touches as usually
+		switch(direction)
 		{
-			//DestroyWindow(hWnd_Main);
-			Cameras.EndShow();
-			Cameras.savePicturesFromActiveCamerasToDisc();
-			Cameras.BeginShow();
-			break;
+			case TOUCH_MOVEMENT_UP:
+			{
+				//DestroyWindow(hWnd_Main);
+				_beginthread(takeSnapshots, 0, NULL);
+				break;
+			}
+			case TOUCH_MOVEMENT_DOWN:
+				Cameras.EndShow();
+				ShowWindow(hWnd_Main, 0);
+				ShowWindow(hWnd_Gallery, 1);
+				UpdateWindow(hWnd_Gallery);
+				galleryWindowNeedsRefresh = true;
+				break;
+			case TOUCH_MOVEMENT_LEFT:
+				Cameras.SetNextRightCamera();
+				break;
+			case TOUCH_MOVEMENT_RIGHT:
+				Cameras.SetNextLeftCamera();
+				break;
 		}
-		case TOUCH_MOVEMENT_DOWN:
-			Cameras.EndShow();
-			ShowWindow(hWnd_Main, 0);
-			ShowWindow(hWnd_Gallery, 1);
-			UpdateWindow(hWnd_Gallery);
-			galleryWindowNeedsRefresh = true;
-			break;
-		case TOUCH_MOVEMENT_LEFT:
-			Cameras.SetNextRightCamera();
-			break;
-		case TOUCH_MOVEMENT_RIGHT:
-			Cameras.SetNextLeftCamera();
-			break;
+	}
+	else
+	{
+		//if countdown and taking pictures process IS active while registered new touches - cancel countdown and taking pictures
+		showCountdownWarning = false;
 	}
 }
 
@@ -814,6 +826,25 @@ void drawMain(void * args)
 		{
 			glRasterPos2f(0, 0);
 			glDrawPixels(PICTURE_WIDTH, PICTURE_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, Cameras.CameraBuffer);
+
+			if (showCountdownWarning)
+			{
+				if (snapshotWarningStatus > 0)
+				{
+					//draw countdown
+					char countDown[2] = "";
+					itoa(snapshotWarningStatus, countDown, 10);
+					output(90, 70, countDown, 4);
+				}
+				else if (snapshotWarningStatus == 0)
+				{
+					output(15, 230, "PLEASE WAIT", 0.5);
+				}
+				else if (snapshotWarningStatus < 0)
+				{
+					output(80, 230, "DONE", 0.5);
+				}
+			}
 			SwapBuffers(hDc_Main);
 		}
 	}
@@ -845,73 +876,69 @@ void drawGallery(void * args)
 		{
 			findFoldersWithPictures();
 
-			const int videoWidth = 160;
-			const int videoHeight = 160;
+			const int folderPlaceholderWidth = 160;
+			const int folderPlaceholderHeight = 120;
 			const int hGap = 10;
 			const int vGap = 10;
+			const int columnsNumber = monitorWidth/(folderPlaceholderWidth + hGap);
+			const int rowsNumber = (monitorHeight-(BACK_BUTTON_HEIGHT+5))/(folderPlaceholderHeight+vGap);
 			int col = 0, row = 0;
 
 			for (int i = 0; i < folders.size(); i++)
 			{
-				time_t t1 =  GetTickCount();
-				
-				//compose a path to 1.jpg
-				wstring pathTo1jpg = folders[i].name;
-				wstring s2 (L"\\1.jpg");
-				pathTo1jpg = pathTo1jpg+s2;
-				//convert wstring to char*
-				wchar_t* wchart_pathTo1jpg = const_cast<wchar_t*>(pathTo1jpg.c_str());
-				char* asciiPathTo1jpg = new char[wcslen(wchart_pathTo1jpg) + 1];
-				wcstombs(asciiPathTo1jpg, wchart_pathTo1jpg, wcslen(wchart_pathTo1jpg) + 1 );
-
-				time_t t2 = GetTickCount();
-				int diff2 = t2-t1;
-
-				IplImage* imgRes = cvLoadImage(asciiPathTo1jpg, 1);
-
-				IplImage* scaledImg = cvCreateImage(cvSize(160,160), imgRes->depth, 3);
-				cvResize(imgRes, scaledImg, CV_INTER_LINEAR);
-
-				cvFlip(scaledImg);
-
-				time_t t3 = GetTickCount();
-				int diff3 = t3-t2;
-
-				//convert BGR -> RGB
-				char symb;
-				for (int j=0; j<scaledImg->width * scaledImg->height * 3; j+=3)
+				if (row<rowsNumber)
 				{
-					symb = scaledImg->imageData[j+0];
-					scaledImg->imageData[j+0] = scaledImg->imageData[j+2];
-					scaledImg->imageData[j+2] = symb;
-				}
+					//compose a path to 1.jpg
+					wstring pathTo1jpg = folders[i].name;
+					wstring s2 (L"\\1.jpg");
+					pathTo1jpg = pathTo1jpg+s2;
+					//convert wstring to char*
+					wchar_t* wchart_pathTo1jpg = const_cast<wchar_t*>(pathTo1jpg.c_str());
+					char* asciiPathTo1jpg = new char[wcslen(wchart_pathTo1jpg) + 1];
+					wcstombs(asciiPathTo1jpg, wchart_pathTo1jpg, wcslen(wchart_pathTo1jpg) + 1 );
 
-				time_t t4 = GetTickCount();
-				int diff4 = t4-t3;
+					IplImage* imgRes = cvLoadImage(asciiPathTo1jpg, 1);
 
-				//draw a picture
-				int curPictureX = 10 + hGap*col + videoWidth*col;
-				int curPictureY = monitorHeight - (BACK_BUTTON_HEIGHT+5) - vGap*row - videoHeight*(row+1);
-				glRasterPos2f(curPictureX, curPictureY);
-				glDrawPixels(scaledImg->width, scaledImg->height, GL_RGB, GL_UNSIGNED_BYTE, scaledImg->imageData);
+					int scaledImgWidth = 0;
+					int scaledImgHeight = 0;
+					calculateScaledImageSize(folderPlaceholderWidth, folderPlaceholderHeight, imgRes->width, imgRes->height, &scaledImgWidth, &scaledImgHeight);
 
-				//save the current picture rect (in coordinates of a window)
-				RECT r = {
-					curPictureX,
-					(BACK_BUTTON_HEIGHT+5) + vGap*row + videoHeight*row,
-					curPictureX + videoWidth,
-					(BACK_BUTTON_HEIGHT+5) + vGap*row + videoHeight*(row + 1)
-				};
-				folders[i].winRect = r;
+					IplImage* scaledImg = cvCreateImage(cvSize(scaledImgWidth,scaledImgHeight), imgRes->depth, imgRes->nChannels);
+					cvResize(imgRes, scaledImg, CV_INTER_LINEAR);
+					cvFlip(scaledImg);
 
-				time_t t5 = GetTickCount();
-				int diff5 = t5-t4;
+					//convert BGR -> RGB
+					char symb;
+					for (int j=0; j<scaledImg->width * scaledImg->height * 3; j+=3)
+					{
+						symb = scaledImg->imageData[j+0];
+						scaledImg->imageData[j+0] = scaledImg->imageData[j+2];
+						scaledImg->imageData[j+2] = symb;
+					}
 
-				col++;
-				if (col>3)
-				{
-					col = 0;
-					row++;
+					//draw a picture
+					/*int curPictureX = 10 + hGap*col + scaledImg->width*col;
+					int curPictureY = monitorHeight - (BACK_BUTTON_HEIGHT+5) - vGap*row - scaledImg->height*(row+1);*/
+					int curPictureX = 10 + hGap*col + folderPlaceholderWidth*col;
+					int curPictureY = monitorHeight - (BACK_BUTTON_HEIGHT+5) - vGap*row - folderPlaceholderHeight*(row+1);
+					glRasterPos2f(curPictureX, curPictureY);
+					glDrawPixels(scaledImg->width, scaledImg->height, GL_RGB, GL_UNSIGNED_BYTE, scaledImg->imageData);
+
+					//save the current picture rect (in coordinates of a window)
+					RECT r = {
+						curPictureX,
+						(BACK_BUTTON_HEIGHT+5) + vGap*row + scaledImg->height*row,
+						curPictureX + scaledImg->width,
+						(BACK_BUTTON_HEIGHT+5) + vGap*row + scaledImg->height*(row + 1)
+					};
+					folders[i].winRect = r;
+
+					col++;
+					if (col>columnsNumber-1)
+					{
+						col = 0;
+						row++;
+					}
 				}
 			}
 			
@@ -947,11 +974,6 @@ void drawSession(void * args)
 		else
 		{
 			findPicturesInCurrentFolder();
-			const int videoWidth = 160;
-			const int videoHeight = 120;
-			const int hGap = 20;
-			const int vGap = 40;
-			int col = 0, row = 0;
 
 			wstring pathTojpg = folders[sessionCurrentFolderIndex].name + L"\\" + picturesInCurrentFolder[sessionCurrentPictureIndex];
 			//convert wstring to char*
@@ -1055,3 +1077,43 @@ void calculateScaledImageSize(int placeholderW, int placeholderH, int originalW,
 	}
 }
 /*=================================================================================================================================*/
+void takeSnapshots(void * args)
+{
+	showCountdownWarning = true;
+
+	for (int i = 5; i >= 0; i--)
+	{
+		if (showCountdownWarning)
+		{
+			snapshotWarningStatus = i;
+			Sleep(1000);
+		}
+	}
+
+	if (showCountdownWarning)
+	{
+		Cameras.EndShow();
+		Cameras.savePicturesFromActiveCamerasToDisc();
+		Cameras.BeginShow();
+
+		snapshotWarningStatus = -1;
+		Sleep(2000);
+	}
+
+	showCountdownWarning = false;
+}
+
+void output(GLfloat x, GLfloat y, char* text, float size)
+{
+    glPushMatrix();
+    glTranslatef(x, y, 0);		//position
+    glScalef(size,size,size);	//size
+	glColor3f(1.0f, 1.0f, 1.0f);//color
+	glLineWidth(size*3);		//thickness
+	
+    for( char* p = text; *p; p++)
+    {
+        glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, *p);
+    }
+    glPopMatrix();
+}
