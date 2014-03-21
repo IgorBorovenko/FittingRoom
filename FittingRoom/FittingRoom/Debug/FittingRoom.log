@@ -1,4 +1,4 @@
-﻿Build started 20.03.2014 17:15:56.
+﻿Build started 21.03.2014 18:10:41.
      1>Project "C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\FittingRoom\FittingRoom.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\FittingRoom.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -23,12 +23,12 @@
      1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(469): warning C4101: 'rcClient' : unreferenced local variable
      1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(471): warning C4101: 'ptClientLR' : unreferenced local variable
      1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(475): warning C4101: 'dwThreadId' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(836): warning C4996: 'itoa': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _itoa. See online help for details.
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(850): warning C4996: 'itoa': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _itoa. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdlib.h(867) : see declaration of 'itoa'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(887): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(898): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(901): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(912): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdlib.h(533) : see declaration of 'wcstombs'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(982): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1001): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdlib.h(533) : see declaration of 'wcstombs'
        ResourceCompile:
          All outputs are up-to-date.
@@ -53,4 +53,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:02.70
+Time Elapsed 00:00:01.88

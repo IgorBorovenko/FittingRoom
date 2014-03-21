@@ -192,7 +192,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 			TCHAR cameraIndexItem[4]; 
 
 			memset(&cameraIndexItem, 0, sizeof(cameraIndexItem));       
-			for (int k = 0; k < 16; k++)
+			for (int k = 0; k < cameraNumber; k++)
 			{
 				wcscpy_s(cameraIndexItem, sizeof(cameraIndexItem)/sizeof(TCHAR),  (TCHAR*)cameraIndexItems[k]);
 				
@@ -387,8 +387,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			DestroyWindow(hWnd);
 			break;
 		case IDC_MAIN_BUTTON:
+			{
 			PutIDsIntoFile(hWnd);
 			break;
+			}
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
@@ -621,15 +623,19 @@ void Resize(int width, int height)
 void PutIDsIntoFile(HWND hwnd)
 {
 	ofstream out("../camera.conf", ios::out);
-	for(int i = 0; i < 16; i++)
+	for(int i = 0; i < cameraNumber; i++)
 	{
 		//get selected item index
 		int itemIndex = SendMessage(hWndCBs[i], (UINT) CB_GETCURSEL,(WPARAM) 0, (LPARAM) 0);
-		if(i > 0)
-			out<<endl;
-		out<<itemIndex;
+		if (itemIndex > -1)
+		{
+			if(i > 0)
+				out<<endl;
+			out<<itemIndex;
+		}
 	}
 	out.close();
+	MessageBox(hwnd, TEXT("Complete"), TEXT("Save config"), MB_OK);
 	return;
 	/*int ItemIndex = SendMessage(hWndCBs[2], (UINT) CB_GETCURSEL,(WPARAM) 0, (LPARAM) 0);
     TCHAR  ListItem[256];
@@ -661,7 +667,7 @@ void PutIDsIntoFile(HWND hwnd)
 		_TCHAR writeBuffer[1000] = L"";
 		const _TCHAR tchRN[10] = L"\r\n";
 
-		for(int i = 0; i < 16; i++)
+		for(int i = 0; i < cameraNumber; i++)
 		{
 			//get selected item index
 			int itemIndex = SendMessage(hWndCBs[i], (UINT) CB_GETCURSEL,(WPARAM) 0, (LPARAM) 0);
