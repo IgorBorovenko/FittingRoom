@@ -1,8 +1,8 @@
 #pragma once
 
 const int CAMERAS_COUNT = 8;
-const int PICTURE_WIDTH = 640;
-const int PICTURE_HEIGHT = 480;
+const int PICTURE_WIDTH = 800;
+const int PICTURE_HEIGHT = 600;
 const int PICTURE_SIZE = PICTURE_WIDTH * PICTURE_HEIGHT * 3;
 const char CAMERAS_CONFIG[] = "../camera.conf";
 

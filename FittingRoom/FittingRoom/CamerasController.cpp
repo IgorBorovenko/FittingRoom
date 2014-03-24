@@ -11,6 +11,7 @@ wchar_t *CamerasController::convertCharArrayToLPCWSTR(const char* charArray)
 /*=================================================================================================================================*/
 CamerasController::CamerasController(void)
 {
+	CameraBuffer = new char[PICTURE_SIZE];
 	IsShowVideo = false;
 	CurrentCamera = NULL;
 	memset(CameraBuffer, 255, PICTURE_SIZE);
@@ -18,10 +19,18 @@ CamerasController::CamerasController(void)
 /*=================================================================================================================================*/
 CamerasController::~CamerasController(void)
 {
+	delete[] CameraBuffer;
 }
 /*=================================================================================================================================*/
 bool CamerasController::ReadConfig()
 {
+	//initialize 'Camera; objects with start values
+	for (int i = 0; i < CAMERAS_COUNT; i++)
+	{
+		Cameras[i].Index = 666;
+		Cameras[i].SystemIndex = 666;
+	}
+
 	ifstream myStream(CAMERAS_CONFIG, ios::in);
 	if(!myStream.fail())
 	{
@@ -145,7 +154,8 @@ void CamerasController::SetNextRightCamera()
 void CamerasController::savePicturesFromActiveCamerasToDisc()
 {
 	int fileCounter = 1;
-	char curCameraBuffer[PICTURE_SIZE];
+
+	char *curCameraBuffer = new char[PICTURE_SIZE];
 	bool flagInit = false;
 	bool flagStop = true;
 	bool directoryIsCreated = false;
@@ -228,7 +238,7 @@ void CamerasController::savePicturesFromActiveCamerasToDisc()
 			}
 		}
 	}
-	//delete[] curCameraBuffer;
+	delete[] curCameraBuffer;
 	/*delete[] filename;
 	delete[] extension;
 	delete[] foldername;

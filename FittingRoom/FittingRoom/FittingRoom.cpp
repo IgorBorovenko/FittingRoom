@@ -222,7 +222,7 @@ BOOL CreateWindow_Gallery(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWi
 	{
 		hWnd_Gallery = CreateWindow(szWindowClass_Gallery,
 									L"Gallery",
-									WS_POPUP | WS_VISIBLE,
+									WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
 									monitorInfo.rcMonitor.left, 
 									monitorInfo.rcMonitor.top,
 									monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
@@ -239,7 +239,7 @@ BOOL CreateWindow_Gallery(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWi
 	// draw a button "Back"  
 	HWND hWndGalleryBackButton = CreateWindow(TEXT("button"), 
 											  TEXT("<-- Back"),
-											  WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+											  WS_VISIBLE | WS_CHILD /*| BS_DEFPUSHBUTTON*/,
 											  monitorInfo.rcMonitor.left, 
 											  monitorInfo.rcMonitor.top,
 											  monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
@@ -266,7 +266,7 @@ BOOL CreateWindow_Session(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWi
 	{
 		hWnd_Session = CreateWindow(szWindowClass_Session,
 									L"Session",
-									WS_POPUP | WS_VISIBLE,
+									WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
 									monitorInfo.rcMonitor.left, 
 									monitorInfo.rcMonitor.top,
 									monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
@@ -281,9 +281,9 @@ BOOL CreateWindow_Session(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWi
 		return FALSE;
 	}
 	// draw a button "Back" 
-	HWND hWndGalleryBackButton = CreateWindow(TEXT("button"), 
+	HWND hWndSessionBackButton = CreateWindow(TEXT("button"), 
 											  TEXT("<-- Back"),
-											  WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+											  WS_VISIBLE | WS_CHILD /*| BS_DEFPUSHBUTTON*/,
 											  monitorInfo.rcMonitor.left, 
 											  monitorInfo.rcMonitor.top,
 											  monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
@@ -372,11 +372,11 @@ LRESULT CALLBACK WndProc_Main(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 					return DefWindowProc(hWnd, message, wParam, lParam);
 			}
 			break;
-		case WM_PAINT:
-			hdc = BeginPaint(hWnd, &ps);
-			// TODO: Add any drawing code here...
-			EndPaint(hWnd, &ps);
-			break;
+		//case WM_PAINT:
+		//	hdc = BeginPaint(hWnd, &ps);
+		//	// TODO: Add any drawing code here...
+		//	EndPaint(hWnd, &ps);
+		//	break;
 		case WM_DESTROY:
 			PostQuitMessage(0);
 			break;
@@ -442,11 +442,11 @@ LRESULT CALLBACK WndProc_Gallery(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 					return DefWindowProc(hWnd, message, wParam, lParam);
 			}
 			break;
-		case WM_PAINT:
-			hDc_Gallery = BeginPaint(hWnd, &ps);
-			// TODO: Add any drawing code here...
-			EndPaint(hWnd, &ps);
-			break;
+		//case WM_PAINT:
+		//	hDc_Gallery = BeginPaint(hWnd, &ps);
+		//	// TODO: Add any drawing code here...
+		//	EndPaint(hWnd, &ps);
+		//	break;
 		case WM_CLOSE:
 			ShowWindow(hWnd_Gallery, 0);
 			ShowWindow(hWnd_Main, 1);
@@ -561,11 +561,12 @@ LRESULT CALLBACK WndProc_Session(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 					return DefWindowProc(hWnd, message, wParam, lParam);
 			}
 			break;
-		case WM_PAINT:
-			hDc_Session = BeginPaint(hWnd, &ps);
+		//case WM_PAINT:
+			//DefWindowProc(hWnd, message, wParam, lParam);
+			//hDc_Session = BeginPaint(hWnd, &ps);
 			// TODO: Add any drawing code here...
-			EndPaint(hWnd, &ps);
-			break;
+			//EndPaint(hWnd, &ps);
+			//break;
 		case WM_CLOSE:
 			ShowWindow(hWnd_Session, 0);
 			ShowWindow(hWnd_Gallery, 1);
@@ -989,7 +990,7 @@ void drawSession(void * args)
 	while(1)
 	{
 		if (!sessionWindowNeedsRefresh)
-			Sleep(500);
+			Sleep(100);
 		else
 		{
 			findPicturesInCurrentFolder();
@@ -999,35 +1000,49 @@ void drawSession(void * args)
 			wchar_t* wchart_pathTojpg = const_cast<wchar_t*>(pathTojpg.c_str());
 			char* asciiPathTojpg = new char[wcslen(wchart_pathTojpg) + 1];
 			wcstombs(asciiPathTojpg, wchart_pathTojpg, wcslen(wchart_pathTojpg) + 1);
-
+			
 			IplImage* imgOriginal = cvLoadImage(asciiPathTojpg, 1);
+			//convert BGR -> RGB
+			char symb;
+			for (int j=0; j<imgOriginal->width * imgOriginal->height * 3; j+=3)
+			{
+				symb = imgOriginal->imageData[j+0];
+				imgOriginal->imageData[j+0] = imgOriginal->imageData[j+2];
+				imgOriginal->imageData[j+2] = symb;
+			}
+
 			IplImage* imgRotated = rotateImage(imgOriginal);
 			int newWidth = 0, newHeight = 0;
 			calculateScaledImageSize(monitorWidth, monitorHeight-(BACK_BUTTON_HEIGHT+5), imgRotated->width, imgRotated->height, &newWidth, &newHeight);
 			IplImage* imgScaled = cvCreateImage(cvSize(newWidth,newHeight), imgRotated->depth, imgRotated->nChannels);
 			cvResize(imgRotated, imgScaled, CV_INTER_LINEAR);
-
+			
 			cvFlip(imgScaled);
-			//convert BGR -> RGB
-			char symb;
-			for (int j=0; j<imgScaled->width * imgScaled->height * 3; j+=3)
-			{
-				symb = imgScaled->imageData[j+0];
-				imgScaled->imageData[j+0] = imgScaled->imageData[j+2];
-				imgScaled->imageData[j+2] = symb;
-			}
-
+			
+			////convert BGR -> RGB
+			//char symb;
+			//for (int j=0; j<imgScaled->width * imgScaled->height * 3; j+=3)
+			//{
+			//	symb = imgScaled->imageData[j+0];
+			//	imgScaled->imageData[j+0] = imgScaled->imageData[j+2];
+			//	imgScaled->imageData[j+2] = symb;
+			//}
+			/*
+			*/
 			glRasterPos2f(0, 0);
 			glDrawPixels(imgScaled->width, imgScaled->height, GL_RGB, GL_UNSIGNED_BYTE, imgScaled->imageData);
+			//glDrawPixels(imgRotated->width, imgRotated->height, GL_RGB, GL_UNSIGNED_BYTE, imgRotated->imageData);
 
-			cvReleaseImage(&imgOriginal);
-			cvReleaseImage(&imgRotated);
-			cvReleaseImage(&imgScaled);
+			//cvReleaseImage(&imgOriginal);
+			//cvReleaseImage(&imgRotated);
+			//cvReleaseImage(&imgScaled);
 
 			SwapBuffers(hDc_Session);
 			Sleep(30);
+			
+			//InvalidateRect(hWnd_Session, NULL, false);
 			sessionWindowNeedsRefresh = false;
-			InvalidateRect(hWnd_Session, NULL, false);
+			
 		}
 	}
 }
@@ -1117,6 +1132,7 @@ void takeSnapshots(void * args)
 	if (showCountdownWarning)
 	{
 		Cameras.EndShow();
+		Sleep(1000);
 		Cameras.savePicturesFromActiveCamerasToDisc();
 		Cameras.BeginShow();
 

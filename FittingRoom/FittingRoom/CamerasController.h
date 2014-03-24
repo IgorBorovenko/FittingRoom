@@ -36,7 +36,7 @@ class CamerasController
 
 	public:
 		// variables
-		char CameraBuffer[PICTURE_SIZE];
+		char *CameraBuffer;
 		bool IsShowVideo;
 		// methods
 		CamerasController(void);
