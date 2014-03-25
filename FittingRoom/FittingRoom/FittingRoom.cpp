@@ -79,7 +79,9 @@ wchar_t *convertCharArrayToLPCWSTR(const char* charArray);
 ////Изменение размеров окна
 //void Resize(int width, int height);
 void calculateScaledImageSize(int placeholderW, int placeholderH, int originalW, int originalH, int* newW, int* newH);
-IplImage *rotateImage(const IplImage *src);
+IplImage *rotateImage(IplImage *src);
+void customRotate(char *buffer, char *rotatedBuffer);
+void customFlip(char* oldImg, char* newImg);
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
@@ -819,27 +821,39 @@ void drawMain(void * args)
 		return;
 	}
 
+	glRasterPos2f(0, 0);
+	IplImage* imgSrc = cvCreateImage(cvSize(PICTURE_WIDTH,PICTURE_HEIGHT), 8, 3);
+	imgSrc->imageData = Cameras.CameraBuffer;
+	//memcpy(imgSrc->imageData, Cameras.CameraBuffer, 
+	IplImage* imgDst = cvCreateImage(cvSize(PICTURE_HEIGHT,PICTURE_WIDTH), 8, 3);
+	char* rotatedBuffer = new char[PICTURE_WIDTH * PICTURE_HEIGHT * 3];
+	char* finalBuffer = new char[PICTURE_WIDTH * PICTURE_HEIGHT * 3];
+	
 	while(true)
 	{
 		if (!Cameras.IsShowVideo)
 			Sleep(333);
 		else
 		{
-			glRasterPos2f(0, 0);
-
-
 			//original picture
 			//glDrawPixels(PICTURE_WIDTH, PICTURE_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, Cameras.CameraBuffer);
 
 			
 			//rotated by 90 degrees
-			IplImage* imgSrc = cvCreateImage(cvSize(PICTURE_WIDTH,PICTURE_HEIGHT), 8, 3);
-			imgSrc->imageData = Cameras.CameraBuffer;
-			IplImage* imgDst = rotateImage(imgSrc);
-			glDrawPixels(imgDst->width, imgDst->height, GL_RGB, GL_UNSIGNED_BYTE, imgDst->imageData);
-			cvReleaseImage(&imgSrc);
-			cvReleaseImage(&imgDst);
 			
+			//rotateImage(imgSrc, imgDst);
+			//cvGetQuadrangleSubPix( imgSrc, imgDst, &M);
+			
+			customRotate(Cameras.CameraBuffer, rotatedBuffer);
+			customFlip(rotatedBuffer, finalBuffer);
+
+			glDrawPixels(PICTURE_HEIGHT, PICTURE_WIDTH, GL_RGB, GL_UNSIGNED_BYTE, finalBuffer);
+
+			//glDrawPixels(imgDst->width, imgDst->height, GL_RGB, GL_UNSIGNED_BYTE, imgDst->imageData);
+			//cvReleaseImage(&imgDst);
+			
+			//cvFlip(imgSrc, imgSrc, 1);
+			//glDrawPixels(imgSrc->width, imgSrc->height, GL_RGB, GL_UNSIGNED_BYTE, imgSrc->imageData);
 			
 			
 			if (showCountdownWarning)
@@ -861,9 +875,12 @@ void drawMain(void * args)
 				}
 			}
 			SwapBuffers(hDc_Main);
+
+			Sleep(33);
 		}
 	}
-	
+
+	cvReleaseImage(&imgSrc);	
 }
 /*=================================================================================================================================*/
 void drawGallery(void * args)
@@ -913,6 +930,16 @@ void drawGallery(void * args)
 					wcstombs(asciiPathTo1jpg, wchart_pathTo1jpg, wcslen(wchart_pathTo1jpg) + 1 );
 
 					IplImage* imgOriginal = cvLoadImage(asciiPathTo1jpg, 1);
+
+					//convert BGR -> RGB
+					char symb;
+					for (int j=0; j<imgOriginal->width * imgOriginal->height * 3; j+=3)
+					{
+						symb = imgOriginal->imageData[j+0];
+						imgOriginal->imageData[j+0] = imgOriginal->imageData[j+2];
+						imgOriginal->imageData[j+2] = symb;
+					}
+
 					IplImage* imgRotated = rotateImage(imgOriginal);
 					int scaledImgWidth = 0;
 					int scaledImgHeight = 0;
@@ -922,15 +949,7 @@ void drawGallery(void * args)
 					cvResize(imgRotated, imgScaled, CV_INTER_LINEAR);
 					cvFlip(imgScaled);
 
-					//convert BGR -> RGB
-					char symb;
-					for (int j=0; j<imgScaled->width * imgScaled->height * 3; j+=3)
-					{
-						symb = imgScaled->imageData[j+0];
-						imgScaled->imageData[j+0] = imgScaled->imageData[j+2];
-						imgScaled->imageData[j+2] = symb;
-					}
-
+					
 					//draw a picture
 					/*int curPictureX = 10 + hGap*col + imgScaled->width*col;
 					int curPictureY = monitorHeight - (BACK_BUTTON_HEIGHT+5) - vGap*row - imgScaled->height*(row+1);*/
@@ -1132,7 +1151,6 @@ void takeSnapshots(void * args)
 	if (showCountdownWarning)
 	{
 		Cameras.EndShow();
-		Sleep(1000);
 		Cameras.savePicturesFromActiveCamerasToDisc();
 		Cameras.BeginShow();
 
@@ -1160,7 +1178,7 @@ void openGlDrawText(GLfloat x, GLfloat y, char* text, float size)
 
 // Rotate the image clockwise (or counter-clockwise if negative).
 // Remember to free the returned image.
-IplImage *rotateImage(const IplImage *src)
+IplImage *rotateImage(IplImage *src)
 {
 	float angleDegrees = 90;
 	// Create a map_matrix, where the left 2x2 matrix
@@ -1181,13 +1199,53 @@ IplImage *rotateImage(const IplImage *src)
 	CvSize sizeRotated;
 	sizeRotated.width = cvRound(h);
 	sizeRotated.height = cvRound(w);
-
+	
 	// Rotate
-	IplImage *imageRotated = cvCreateImage( sizeRotated,
-		src->depth, src->nChannels );
+	IplImage *imageRotated = cvCreateImage( sizeRotated, src->depth, src->nChannels );
 
 	// Transform the image
 	cvGetQuadrangleSubPix( src, imageRotated, &M);
 
 	return imageRotated;
+}
+
+void customRotate(char *buffer, char *rotatedBuffer)
+{
+	for (int row = 0; row < PICTURE_HEIGHT; row++)
+	{
+		for (int col = 0; col < PICTURE_WIDTH; col++)
+		{
+			rotatedBuffer[
+			(col*PICTURE_HEIGHT + (PICTURE_HEIGHT - row))*3
+			] = 
+			buffer[(row*PICTURE_WIDTH + col)*3];
+
+			rotatedBuffer[
+			(col*PICTURE_HEIGHT + (PICTURE_HEIGHT - row))*3 +1
+			] = 
+			buffer[(row*PICTURE_WIDTH + col)*3 + 1];
+
+			rotatedBuffer[
+			(col*PICTURE_HEIGHT + (PICTURE_HEIGHT - row))*3 + 2
+			] = 
+			buffer[(row*PICTURE_WIDTH + col)*3 + 2];
+		}
+	}
+}
+
+void customFlip(char* oldImg, char* newImg)
+{
+	//for vertical picture (w = PICTURE_HEIGHT, h = PICTURE_WIDTH)
+	for (int row = 0; row < PICTURE_WIDTH; row++)
+	{
+		memcpy(&newImg[(PICTURE_WIDTH - row - 1) * PICTURE_HEIGHT * 3], &oldImg[row * PICTURE_HEIGHT * 3], PICTURE_HEIGHT * 3);
+	}
+
+	//for horizontal picture (w = PICTURE_WIDTH, h = PICTURE_HEIGHT)
+	//for (int row = 0; row < PICTURE_HEIGHT; row++)
+	//{
+	//	memcpy(&newImg[(PICTURE_HEIGHT - row - 1) * PICTURE_WIDTH * 3], &oldImg[row * PICTURE_WIDTH * 3], PICTURE_WIDTH * 3);
+	//}
+
+	//return flippedImage;
 }

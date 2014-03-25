@@ -81,7 +81,7 @@ void CamerasController::BeginShowThreadEntry(void * args)
 void CamerasController::BeginShowThreadBody()
 {
 	bool flagInit = false;
-	getFotosFromOneCam(CameraBuffer, PICTURE_WIDTH, PICTURE_HEIGHT, CurrentCamera->SystemIndex, false, 2, &flagInit, &IsShowVideo, false);
+	getFotosFromOneCam(CameraBuffer, PICTURE_WIDTH, PICTURE_HEIGHT, CurrentCamera->SystemIndex, false, 2, &flagInit, &IsShowVideo, true);
 }
 /*=================================================================================================================================*/
 void CamerasController::EndShow()
