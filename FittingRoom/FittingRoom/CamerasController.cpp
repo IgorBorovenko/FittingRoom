@@ -225,6 +225,7 @@ void CamerasController::savePicturesFromActiveCamerasToDisc()
 				//save a picture as a JPEG
 				IplImage *img = cvCreateImage(cvSize(PICTURE_WIDTH, PICTURE_HEIGHT), 8, 3);
 				img->imageData = curCameraBuffer;
+				cvFlip(img,img,0);
 				int res = cvSaveImage(fullPath, img, p);
 				if (res == 0)
 				{

@@ -1,22 +1,13 @@
 #include "stdafx.h"
 #include "FittingRoom.h"
-
 #include "glut.h"
 
-HINSTANCE hInst; // current instance
-TCHAR szTitle[MAX_LOADSTRING];	// The title bar text
-
-BOOL InitInstance(HINSTANCE, int);
-ATOM RegisterWindowClass(HINSTANCE hInstance, WNDPROC wndProc, LPCWSTR windowName);
-
-
-
-// Main Window
+// Main Window vars
 HDC hDc_Main;
 HWND hWnd_Main;
 bool mainWindowNeedsRefresh = false;
 TCHAR szWindowClass_Main[MAX_LOADSTRING]; // the main window class name
-
+// Main Window funcs
 void drawMain(void * args);
 BOOL CreateWindow_Main(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWindow);
 LRESULT CALLBACK WndProc_Main(HWND, UINT, WPARAM, LPARAM);
@@ -24,27 +15,23 @@ void TouchEndHandler_Main();
 void openGlDrawText(GLfloat x, GLfloat y, char* text, float size);
 
 
-// Gallery Window
-struct FolderProps
-{
-	wstring name;
-	RECT winRect;
-};
-
+// Gallery Window vars
+struct FolderProps{wstring name; RECT winRect;};
 HDC hDc_Gallery;
 HWND hWnd_Gallery;
 vector <FolderProps> folders;
 bool galleryWindowNeedsRefresh = false;
 TCHAR szWindowClass_Gallery[MAX_LOADSTRING] = L"szWindowClass_Gallery"; // the main window class name
 bool showCountdownWarning = false;
-
+// Gallery Window funcs
 BOOL CreateWindow_Gallery(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWindow);
 LRESULT CALLBACK WndProc_Gallery(HWND, UINT, WPARAM, LPARAM);
 void drawGallery(void * args);
 void findFoldersWithPictures();
 void takeSnapshots(void * args);
 
-// Session Window
+
+// Session Window vars
 HDC hDc_Session;
 HWND hWnd_Session;
 int sessionCurrentFolderIndex = -1;
@@ -52,36 +39,30 @@ int sessionCurrentPictureIndex = -1;
 bool sessionWindowNeedsRefresh = false;
 vector <wstring> picturesInCurrentFolder;
 TCHAR szWindowClass_Session[MAX_LOADSTRING] = L"szWindowClass_Session"; // the main window class name
-
+// Session Window funcs
 BOOL CreateWindow_Session(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWindow);
 LRESULT CALLBACK WndProc_Session(HWND, UINT, WPARAM, LPARAM);
 void TouchEndHandler_Session();
-//void sessionWindowDirectionHandler(int direction);
 void drawSession(void * args);
 void findPicturesInCurrentFolder();
 
 
-
 // my global variables
+HINSTANCE hInst; // current instance
+TCHAR szTitle[MAX_LOADSTRING];	// The title bar text
 int CurrentTouchesCount = 0;
 vector <TOUCHINPUT> CurrentTouches;
 CamerasController Cameras;
 int snapshotWarningStatus = 0;
 // my declarations
+BOOL InitInstance(HINSTANCE, int);
+ATOM RegisterWindowClass(HINSTANCE hInstance, WNDPROC wndProc, LPCWSTR windowName);
 int GetTouchesResult();
 void TouchHandler(TOUCHINPUT touch);
 int InitializeOpenGL(HWND _hWnd, int monitorWidth, int monitorHeight);
-
 wchar_t *convertCharArrayToLPCWSTR(const char* charArray);
-//int init_OpenGL(HWND hwnd);
-////Дополнительные настройки OpenGL
-//void Init();
-////Изменение размеров окна
-//void Resize(int width, int height);
 void calculateScaledImageSize(int placeholderW, int placeholderH, int originalW, int originalH, int* newW, int* newH);
 IplImage *rotateImage(IplImage *src);
-void customRotate(char *buffer, char *rotatedBuffer);
-void customFlip(char* oldImg, char* newImg);
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
@@ -822,39 +803,37 @@ void drawMain(void * args)
 	}
 
 	glRasterPos2f(0, 0);
-	IplImage* imgSrc = cvCreateImage(cvSize(PICTURE_WIDTH,PICTURE_HEIGHT), 8, 3);
-	imgSrc->imageData = Cameras.CameraBuffer;
-	//memcpy(imgSrc->imageData, Cameras.CameraBuffer, 
-	IplImage* imgDst = cvCreateImage(cvSize(PICTURE_HEIGHT,PICTURE_WIDTH), 8, 3);
 	char* rotatedBuffer = new char[PICTURE_WIDTH * PICTURE_HEIGHT * 3];
 	char* finalBuffer = new char[PICTURE_WIDTH * PICTURE_HEIGHT * 3];
 	
 	while(true)
 	{
 		if (!Cameras.IsShowVideo)
-			Sleep(333);
+			Sleep(100);
 		else
 		{
 			//original picture
 			//glDrawPixels(PICTURE_WIDTH, PICTURE_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, Cameras.CameraBuffer);
+			
+			//customRotate(Cameras.CameraBuffer, rotatedBuffer);
+			for (int row = 0; row < PICTURE_HEIGHT; row++)
+			{
+				for (int col = 0; col < PICTURE_WIDTH; col++)
+				{
+					rotatedBuffer[(col*PICTURE_HEIGHT + (PICTURE_HEIGHT - row))*3 + 0] = Cameras.CameraBuffer[(row*PICTURE_WIDTH + col)*3 + 0];
+					rotatedBuffer[(col*PICTURE_HEIGHT + (PICTURE_HEIGHT - row))*3 + 1] = Cameras.CameraBuffer[(row*PICTURE_WIDTH + col)*3 + 1];
+					rotatedBuffer[(col*PICTURE_HEIGHT + (PICTURE_HEIGHT - row))*3 + 2] = Cameras.CameraBuffer[(row*PICTURE_WIDTH + col)*3 + 2];
+				}
+			}
 
-			
-			//rotated by 90 degrees
-			
-			//rotateImage(imgSrc, imgDst);
-			//cvGetQuadrangleSubPix( imgSrc, imgDst, &M);
-			
-			customRotate(Cameras.CameraBuffer, rotatedBuffer);
-			customFlip(rotatedBuffer, finalBuffer);
+			//customFlip(rotatedBuffer, finalBuffer);
+			//for vertical picture (w = PICTURE_HEIGHT, h = PICTURE_WIDTH)
+			for (int row = 0; row < PICTURE_WIDTH; row++)
+			{
+				memcpy(&finalBuffer[(PICTURE_WIDTH - row - 1) * PICTURE_HEIGHT * 3], &rotatedBuffer[row * PICTURE_HEIGHT * 3], PICTURE_HEIGHT * 3);
+			}
 
 			glDrawPixels(PICTURE_HEIGHT, PICTURE_WIDTH, GL_RGB, GL_UNSIGNED_BYTE, finalBuffer);
-
-			//glDrawPixels(imgDst->width, imgDst->height, GL_RGB, GL_UNSIGNED_BYTE, imgDst->imageData);
-			//cvReleaseImage(&imgDst);
-			
-			//cvFlip(imgSrc, imgSrc, 1);
-			//glDrawPixels(imgSrc->width, imgSrc->height, GL_RGB, GL_UNSIGNED_BYTE, imgSrc->imageData);
-			
 			
 			if (showCountdownWarning)
 			{
@@ -879,8 +858,6 @@ void drawMain(void * args)
 			Sleep(33);
 		}
 	}
-
-	cvReleaseImage(&imgSrc);	
 }
 /*=================================================================================================================================*/
 void drawGallery(void * args)
@@ -903,13 +880,13 @@ void drawGallery(void * args)
 	while(1)
 	{
 		if (!galleryWindowNeedsRefresh)
-			Sleep(500);
+			Sleep(100);
 		else
 		{
 			findFoldersWithPictures();
 
-			const int folderPlaceholderWidth = 120;
-			const int folderPlaceholderHeight = 160;
+			const int folderPlaceholderWidth = 108;
+			const int folderPlaceholderHeight = 192;
 			const int hGap = 10;
 			const int vGap = 10;
 			const int columnsNumber = monitorWidth/(folderPlaceholderWidth + hGap);
@@ -918,7 +895,7 @@ void drawGallery(void * args)
 
 			for (int i = 0; i < folders.size(); i++)
 			{
-				if (row<rowsNumber)
+				if (row < rowsNumber)
 				{
 					//compose a path to 1.jpg
 					wstring pathTo1jpg = folders[i].name;
@@ -940,6 +917,10 @@ void drawGallery(void * args)
 						imgOriginal->imageData[j+2] = symb;
 					}
 
+
+
+
+					
 					IplImage* imgRotated = rotateImage(imgOriginal);
 					int scaledImgWidth = 0;
 					int scaledImgHeight = 0;
@@ -1038,16 +1019,6 @@ void drawSession(void * args)
 			
 			cvFlip(imgScaled);
 			
-			////convert BGR -> RGB
-			//char symb;
-			//for (int j=0; j<imgScaled->width * imgScaled->height * 3; j+=3)
-			//{
-			//	symb = imgScaled->imageData[j+0];
-			//	imgScaled->imageData[j+0] = imgScaled->imageData[j+2];
-			//	imgScaled->imageData[j+2] = symb;
-			//}
-			/*
-			*/
 			glRasterPos2f(0, 0);
 			glDrawPixels(imgScaled->width, imgScaled->height, GL_RGB, GL_UNSIGNED_BYTE, imgScaled->imageData);
 			//glDrawPixels(imgRotated->width, imgRotated->height, GL_RGB, GL_UNSIGNED_BYTE, imgRotated->imageData);
@@ -1151,6 +1122,7 @@ void takeSnapshots(void * args)
 	if (showCountdownWarning)
 	{
 		Cameras.EndShow();
+		Sleep(100);
 		Cameras.savePicturesFromActiveCamerasToDisc();
 		Cameras.BeginShow();
 
@@ -1209,43 +1181,3 @@ IplImage *rotateImage(IplImage *src)
 	return imageRotated;
 }
 
-void customRotate(char *buffer, char *rotatedBuffer)
-{
-	for (int row = 0; row < PICTURE_HEIGHT; row++)
-	{
-		for (int col = 0; col < PICTURE_WIDTH; col++)
-		{
-			rotatedBuffer[
-			(col*PICTURE_HEIGHT + (PICTURE_HEIGHT - row))*3
-			] = 
-			buffer[(row*PICTURE_WIDTH + col)*3];
-
-			rotatedBuffer[
-			(col*PICTURE_HEIGHT + (PICTURE_HEIGHT - row))*3 +1
-			] = 
-			buffer[(row*PICTURE_WIDTH + col)*3 + 1];
-
-			rotatedBuffer[
-			(col*PICTURE_HEIGHT + (PICTURE_HEIGHT - row))*3 + 2
-			] = 
-			buffer[(row*PICTURE_WIDTH + col)*3 + 2];
-		}
-	}
-}
-
-void customFlip(char* oldImg, char* newImg)
-{
-	//for vertical picture (w = PICTURE_HEIGHT, h = PICTURE_WIDTH)
-	for (int row = 0; row < PICTURE_WIDTH; row++)
-	{
-		memcpy(&newImg[(PICTURE_WIDTH - row - 1) * PICTURE_HEIGHT * 3], &oldImg[row * PICTURE_HEIGHT * 3], PICTURE_HEIGHT * 3);
-	}
-
-	//for horizontal picture (w = PICTURE_WIDTH, h = PICTURE_HEIGHT)
-	//for (int row = 0; row < PICTURE_HEIGHT; row++)
-	//{
-	//	memcpy(&newImg[(PICTURE_HEIGHT - row - 1) * PICTURE_WIDTH * 3], &oldImg[row * PICTURE_WIDTH * 3], PICTURE_WIDTH * 3);
-	//}
-
-	//return flippedImage;
-}

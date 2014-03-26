@@ -1,4 +1,4 @@
-﻿Build started 25.03.2014 18:01:25.
+﻿Build started 26.03.2014 15:06:58.
      1>Project "C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\FittingRoom\FittingRoom.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Release\FittingRoom.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -8,31 +8,31 @@
          FittingRoom.cpp
      1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\opencv2\flann\logger.h(66): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
-     1>FittingRoom.cpp(156): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
-     1>FittingRoom.cpp(157): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
-     1>FittingRoom.cpp(158): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
-     1>FittingRoom.cpp(312): warning C4101: 'ps' : unreferenced local variable
-     1>FittingRoom.cpp(313): warning C4101: 'hdc' : unreferenced local variable
-     1>FittingRoom.cpp(414): warning C4018: '<' : signed/unsigned mismatch
-     1>FittingRoom.cpp(419): warning C4996: '_swprintf': This function or variable may be unsafe. Consider using _swprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>FittingRoom.cpp(137): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
+     1>FittingRoom.cpp(138): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
+     1>FittingRoom.cpp(139): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
+     1>FittingRoom.cpp(293): warning C4101: 'ps' : unreferenced local variable
+     1>FittingRoom.cpp(294): warning C4101: 'hdc' : unreferenced local variable
+     1>FittingRoom.cpp(395): warning C4018: '<' : signed/unsigned mismatch
+     1>FittingRoom.cpp(400): warning C4996: '_swprintf': This function or variable may be unsafe. Consider using _swprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\wchar.h(761) : see declaration of '_swprintf'
-     1>FittingRoom.cpp(397): warning C4101: 'ps' : unreferenced local variable
-     1>FittingRoom.cpp(394): warning C4101: 'ptClientUL' : unreferenced local variable
-     1>FittingRoom.cpp(393): warning C4101: 'rcClient' : unreferenced local variable
-     1>FittingRoom.cpp(395): warning C4101: 'ptClientLR' : unreferenced local variable
-     1>FittingRoom.cpp(398): warning C4101: 'dwThreadId' : unreferenced local variable
-     1>FittingRoom.cpp(523): warning C4018: '<' : signed/unsigned mismatch
-     1>FittingRoom.cpp(475): warning C4101: 'ps' : unreferenced local variable
-     1>FittingRoom.cpp(472): warning C4101: 'ptClientUL' : unreferenced local variable
-     1>FittingRoom.cpp(471): warning C4101: 'rcClient' : unreferenced local variable
-     1>FittingRoom.cpp(473): warning C4101: 'ptClientLR' : unreferenced local variable
-     1>FittingRoom.cpp(477): warning C4101: 'dwThreadId' : unreferenced local variable
-     1>FittingRoom.cpp(865): warning C4996: 'itoa': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _itoa. See online help for details.
+     1>FittingRoom.cpp(378): warning C4101: 'ps' : unreferenced local variable
+     1>FittingRoom.cpp(375): warning C4101: 'ptClientUL' : unreferenced local variable
+     1>FittingRoom.cpp(374): warning C4101: 'rcClient' : unreferenced local variable
+     1>FittingRoom.cpp(376): warning C4101: 'ptClientLR' : unreferenced local variable
+     1>FittingRoom.cpp(379): warning C4101: 'dwThreadId' : unreferenced local variable
+     1>FittingRoom.cpp(504): warning C4018: '<' : signed/unsigned mismatch
+     1>FittingRoom.cpp(456): warning C4101: 'ps' : unreferenced local variable
+     1>FittingRoom.cpp(453): warning C4101: 'ptClientUL' : unreferenced local variable
+     1>FittingRoom.cpp(452): warning C4101: 'rcClient' : unreferenced local variable
+     1>FittingRoom.cpp(454): warning C4101: 'ptClientLR' : unreferenced local variable
+     1>FittingRoom.cpp(458): warning C4101: 'dwThreadId' : unreferenced local variable
+     1>FittingRoom.cpp(844): warning C4996: 'itoa': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _itoa. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(867) : see declaration of 'itoa'
-     1>FittingRoom.cpp(919): warning C4018: '<' : signed/unsigned mismatch
-     1>FittingRoom.cpp(930): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>FittingRoom.cpp(896): warning C4018: '<' : signed/unsigned mismatch
+     1>FittingRoom.cpp(907): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(533) : see declaration of 'wcstombs'
-     1>FittingRoom.cpp(1021): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>FittingRoom.cpp(1002): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(533) : see declaration of 'wcstombs'
        ResourceCompile:
          All outputs are up-to-date.
@@ -53,4 +53,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:02.01
+Time Elapsed 00:00:02.41
