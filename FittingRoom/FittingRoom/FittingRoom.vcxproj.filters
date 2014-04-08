@@ -42,6 +42,9 @@
     <ClInclude Include="CamerasController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SpinigeController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -51,6 +54,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CamerasController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SpinigeController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

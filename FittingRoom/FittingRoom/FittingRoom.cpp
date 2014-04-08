@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "FittingRoom.h"
+#include "SpinigeController.h"
 #include "glut.h"
 
 // Main Window vars
@@ -54,6 +55,7 @@ int CurrentTouchesCount = 0;
 vector <TOUCHINPUT> CurrentTouches;
 CamerasController Cameras;
 int snapshotWarningStatus = 0;
+SpinigeController spinige;
 // my declarations
 BOOL InitInstance(HINSTANCE, int);
 ATOM RegisterWindowClass(HINSTANCE hInstance, WNDPROC wndProc, LPCWSTR windowName);
@@ -677,6 +679,7 @@ void TouchEndHandler_Session()
 		{
 			/*MessageBox(hWndMain, L"up (close application)", L"Error", MB_OK);
 			PostQuitMessage(0);*/
+			spinige.createSpinigeStorage(folders[sessionCurrentFolderIndex].name);
 			break;
 		}
 	case TOUCH_MOVEMENT_LEFT:
@@ -832,7 +835,7 @@ void drawMain(void * args)
 			{
 				memcpy(&finalBuffer[(PICTURE_WIDTH - row - 1) * PICTURE_HEIGHT * 3], &rotatedBuffer[row * PICTURE_HEIGHT * 3], PICTURE_HEIGHT * 3);
 			}
-
+			
 			glDrawPixels(PICTURE_HEIGHT, PICTURE_WIDTH, GL_RGB, GL_UNSIGNED_BYTE, finalBuffer);
 			
 			if (showCountdownWarning)

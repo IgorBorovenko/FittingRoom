@@ -1,9 +1,12 @@
-﻿Build started 21.03.2014 15:59:02.
-     1>Project "C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\FRT\FRT.vcxproj" on node 2 (build target(s)).
-     1>InitializeBuildStatus:
+﻿Build started 04.04.2014 16:57:16.
+     1>Project "C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\FRT\FRT.vcxproj" on node 3 (rebuild target(s)).
+     1>_PrepareForClean:
+         Deleting file "Debug\FRT.lastbuildstate".
+       InitializeBuildStatus:
          Creating "Debug\FRT.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
-         All outputs are up-to-date.
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"StdAfx.h" /Fp"Debug\FRT.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt stdafx.cpp
+         stdafx.cpp
          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\FRT.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt FRT.cpp
          FRT.cpp
      1>c:\users\test\documents\github\fittingroom\fittingroom\frt\opencv2\flann\logger.h(66): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
@@ -13,25 +16,29 @@
      1>c:\users\test\documents\github\fittingroom\fittingroom\frt\frt.cpp(697): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
      1>c:\users\test\documents\github\fittingroom\fittingroom\frt\frt.cpp(822): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
        ResourceCompile:
-         All outputs are up-to-date.
+         c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /D _UNICODE /D UNICODE /l"0x0409" /nologo /fo"Debug\FRT.res" FRT.rc 
        ManifestResourceCompile:
-         All outputs are up-to-date.
+         c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /nologo /fo"Debug\FRT.exe.embed.manifest.res" Debug\FRT_manifest.rc 
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\Debug\FRT.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\FRT.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\Debug\FRT.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\Debug\FRT.lib" /MACHINE:X86 Debug\FRT.res
          Debug\FRT.exe.embed.manifest.res
          Debug\FRT.obj
          Debug\stdafx.obj
        Manifest:
+         Deleting file "Debug\FRT.exe.embed.manifest".
          c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /out:"Debug\FRT.exe.embed.manifest" /manifest Debug\FRT.exe.intermediate.manifest
-         All outputs are up-to-date.
+         c:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /nologo /fo"Debug\FRT.exe.embed.manifest.res" Debug\FRT_manifest.rc 
        LinkEmbedManifest:
-         All outputs are up-to-date.
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\Debug\FRT.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\FRT.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\Debug\FRT.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\Debug\FRT.lib" /MACHINE:X86 Debug\FRT.res
+         Debug\FRT.exe.embed.manifest.res
+         Debug\FRT.obj
+         Debug\stdafx.obj
          FRT.vcxproj -> C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\Debug\FRT.exe
        FinalizeBuildStatus:
          Deleting file "Debug\FRT.unsuccessfulbuild".
          Touching "Debug\FRT.lastbuildstate".
-     1>Done Building Project "C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\FRT\FRT.vcxproj" (build target(s)).
+     1>Done Building Project "C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\FRT\FRT.vcxproj" (rebuild target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:02.07
+Time Elapsed 00:00:02.88

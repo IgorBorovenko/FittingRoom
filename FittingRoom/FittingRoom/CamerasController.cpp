@@ -24,7 +24,7 @@ CamerasController::~CamerasController(void)
 /*=================================================================================================================================*/
 bool CamerasController::ReadConfig()
 {
-	//initialize 'Camera; objects with start values
+	//initialize 'Camera' objects with start values
 	for (int i = 0; i < CAMERAS_COUNT; i++)
 	{
 		Cameras[i].Index = 666;
@@ -162,7 +162,7 @@ void CamerasController::savePicturesFromActiveCamerasToDisc()
 	
 	int p[3];
 	p[0] = CV_IMWRITE_JPEG_QUALITY;
-    p[1] = 80;//jpeg compressor quality 
+    p[1] = 100;//jpeg compressor quality 
     p[2] = 0;
 	
 	const char extension [5] = ".jpg";
