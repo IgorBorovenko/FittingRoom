@@ -1,30 +1,37 @@
-﻿Build started 08.04.2014 15:35:10.
+﻿Build started 11.04.2014 17:18:13.
      1>Project "C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\FittingRoom\FittingRoom.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\FittingRoom.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
          All outputs are up-to-date.
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\FittingRoom.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt SpinigeController.cpp
-         SpinigeController.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\FittingRoom.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt FittingRoom.cpp
+         FittingRoom.cpp
      1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\opencv2\flann\logger.h(66): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(234) : see declaration of 'fopen'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\spinigecontroller.cpp(80): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\spinigecontroller.cpp(103): warning C4996: 'wcscpy': This function or variable may be unsafe. Consider using wcscpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(283) : see declaration of 'wcscpy'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\spinigecontroller.cpp(104): warning C4996: 'wcscat': This function or variable may be unsafe. Consider using wcscat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(276) : see declaration of 'wcscat'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\spinigecontroller.cpp(105): warning C4996: 'wcscat': This function or variable may be unsafe. Consider using wcscat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(276) : see declaration of 'wcscat'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\spinigecontroller.cpp(174): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\spinigecontroller.cpp(194): warning C4996: 'wcscpy': This function or variable may be unsafe. Consider using wcscpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(283) : see declaration of 'wcscpy'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\spinigecontroller.cpp(195): warning C4996: 'wcscat': This function or variable may be unsafe. Consider using wcscat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(276) : see declaration of 'wcscat'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\spinigecontroller.cpp(196): warning C4996: 'wcscat': This function or variable may be unsafe. Consider using wcscat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(276) : see declaration of 'wcscat'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\spinigecontroller.cpp(285): warning C4996: '_snprintf': This function or variable may be unsafe. Consider using _snprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(363) : see declaration of '_snprintf'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\spinigecontroller.cpp(279): warning C4101: 'n' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(141): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(142): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(143): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(297): warning C4101: 'ps' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(298): warning C4101: 'hdc' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(414): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(382): warning C4101: 'ps' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(379): warning C4101: 'ptClientUL' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(378): warning C4101: 'rcClient' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(380): warning C4101: 'ptClientLR' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(383): warning C4101: 'dwThreadId' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(537): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(489): warning C4101: 'ps' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(486): warning C4101: 'ptClientUL' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(485): warning C4101: 'rcClient' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(487): warning C4101: 'ptClientLR' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(491): warning C4101: 'dwThreadId' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(878): warning C4996: 'itoa': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _itoa. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdlib.h(867) : see declaration of 'itoa'
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(933): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(943): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdlib.h(533) : see declaration of 'wcstombs'
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1046): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdlib.h(533) : see declaration of 'wcstombs'
        ResourceCompile:
          All outputs are up-to-date.
        ManifestResourceCompile:
@@ -49,4 +56,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.79
+Time Elapsed 00:00:02.60

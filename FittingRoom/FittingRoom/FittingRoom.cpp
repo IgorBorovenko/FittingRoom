@@ -17,11 +17,12 @@ void openGlDrawText(GLfloat x, GLfloat y, char* text, float size);
 
 
 // Gallery Window vars
-struct FolderProps{wstring name; RECT winRect;};
+struct FolderProps{wstring name; RECT winRect; bool marked;};
 HDC hDc_Gallery;
 HWND hWnd_Gallery;
 vector <FolderProps> folders;
 bool galleryWindowNeedsRefresh = false;
+bool skipFindFolders = false;
 TCHAR szWindowClass_Gallery[MAX_LOADSTRING] = L"szWindowClass_Gallery"; // the main window class name
 bool showCountdownWarning = false;
 // Gallery Window funcs
@@ -30,7 +31,7 @@ LRESULT CALLBACK WndProc_Gallery(HWND, UINT, WPARAM, LPARAM);
 void drawGallery(void * args);
 void findFoldersWithPictures();
 void takeSnapshots(void * args);
-
+void openGlDrawRect(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2);
 
 // Session Window vars
 HDC hDc_Session;
@@ -40,6 +41,7 @@ int sessionCurrentPictureIndex = -1;
 bool sessionWindowNeedsRefresh = false;
 vector <wstring> picturesInCurrentFolder;
 TCHAR szWindowClass_Session[MAX_LOADSTRING] = L"szWindowClass_Session"; // the main window class name
+ULONGLONG ticksAtTouchStart = 0;
 // Session Window funcs
 BOOL CreateWindow_Session(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWindow);
 LRESULT CALLBACK WndProc_Session(HWND, UINT, WPARAM, LPARAM);
@@ -383,6 +385,13 @@ LRESULT CALLBACK WndProc_Gallery(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
 	switch (message)
 	{
+		case WM_LBUTTONDOWN:
+            {
+				//remember ticks just user touched the gallery
+				if (ticksAtTouchStart == 0)
+					ticksAtTouchStart = GetTickCount64();
+			}
+			break;
 		case WM_MOUSEMOVE:
 			if (wParam & MK_LBUTTON) 
             {
@@ -392,20 +401,42 @@ LRESULT CALLBACK WndProc_Gallery(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			break;
 		case WM_LBUTTONUP:
 			{
+				//get current ticks
+				ULONGLONG ticksAtTouchEnd = GetTickCount64();
+				//calculate how many ticks passed since a touch started
+				ULONGLONG ticksPassed = ticksAtTouchEnd - ticksAtTouchStart;
+				//reset variable for a next use
+				ticksAtTouchStart = 0;
+				bool longTouch = (ticksPassed > 700);
+
 				POINTS pts = MAKEPOINTS(lParam);
 				POINT pt = {pts.x, pts.y};
 				for (int folderIndex = 0; folderIndex < folders.size(); folderIndex++)
 				{
+					//check if the click was made inside the rect of some picture
 					if (PtInRect(&folders[folderIndex].winRect, pt))
 					{
-						_TCHAR szBuffer[10];
+						/*wchar_t szBuffer[10];
 						_stprintf(szBuffer, _T("%i"), folderIndex);
-						//MessageBox(hWnd_Gallery,  szBuffer , L"info", MB_OK);
-						ShowWindow(hWnd_Session, 1);
-						UpdateWindow(hWnd_Session);
-						sessionCurrentFolderIndex = folderIndex;
-						sessionCurrentPictureIndex = 0;
-						sessionWindowNeedsRefresh = true;
+						MessageBox(hWnd_Gallery,  szBuffer , L"info", MB_OK);*/
+
+						if (longTouch == true)
+						{
+							//mark or unmark the folder as selected for comparsion
+							folders[folderIndex].marked = !folders[folderIndex].marked;
+							//redraw selection
+							skipFindFolders = true;
+							galleryWindowNeedsRefresh = true;
+						}
+						else
+						{
+							ShowWindow(hWnd_Session, 1);
+							UpdateWindow(hWnd_Session);
+							sessionCurrentFolderIndex = folderIndex;
+							sessionCurrentPictureIndex = 0;
+							sessionWindowNeedsRefresh = true;
+						}
+
 						break;
 					}
 				}
@@ -886,9 +917,12 @@ void drawGallery(void * args)
 			Sleep(100);
 		else
 		{
-			findFoldersWithPictures();
+			if (skipFindFolders == false)
+				findFoldersWithPictures();
 
-			const int folderPlaceholderWidth = 108;
+			/*const int folderPlaceholderWidth = 108;
+			const int folderPlaceholderHeight = 192;*/
+			const int folderPlaceholderWidth = 128;
 			const int folderPlaceholderHeight = 192;
 			const int hGap = 10;
 			const int vGap = 10;
@@ -904,11 +938,11 @@ void drawGallery(void * args)
 					wstring pathTo1jpg = folders[i].name;
 					wstring s2 (L"\\1.jpg");
 					pathTo1jpg = pathTo1jpg+s2;
-					//convert wstring to char*
-					wchar_t* wchart_pathTo1jpg = const_cast<wchar_t*>(pathTo1jpg.c_str());
+					wchar_t* wchart_pathTo1jpg = const_cast<wchar_t*>(pathTo1jpg.c_str()); //convert wstring to char*
 					char* asciiPathTo1jpg = new char[wcslen(wchart_pathTo1jpg) + 1];
 					wcstombs(asciiPathTo1jpg, wchart_pathTo1jpg, wcslen(wchart_pathTo1jpg) + 1 );
 
+					//read from HDD
 					IplImage* imgOriginal = cvLoadImage(asciiPathTo1jpg, 1);
 
 					//convert BGR -> RGB
@@ -920,29 +954,32 @@ void drawGallery(void * args)
 						imgOriginal->imageData[j+2] = symb;
 					}
 
-
-
-
-					
+					//rotate
 					IplImage* imgRotated = rotateImage(imgOriginal);
+
+					//scale to fit a placeholder
 					int scaledImgWidth = 0;
 					int scaledImgHeight = 0;
 					calculateScaledImageSize(folderPlaceholderWidth, folderPlaceholderHeight, imgRotated->width, imgRotated->height, &scaledImgWidth, &scaledImgHeight);
-
 					IplImage* imgScaled = cvCreateImage(cvSize(scaledImgWidth,scaledImgHeight), imgRotated->depth, imgRotated->nChannels);
 					cvResize(imgRotated, imgScaled, CV_INTER_LINEAR);
+
+					//flip
 					cvFlip(imgScaled);
 
-					
-					//draw a picture
-					/*int curPictureX = 10 + hGap*col + imgScaled->width*col;
-					int curPictureY = monitorHeight - (BACK_BUTTON_HEIGHT+5) - vGap*row - imgScaled->height*(row+1);*/
+					//calculate coordinates
 					int curPictureX = 10 + hGap*col + folderPlaceholderWidth*col;
 					int curPictureY = monitorHeight - (BACK_BUTTON_HEIGHT+5) - vGap*row - folderPlaceholderHeight*(row+1);
-					glRasterPos2f(curPictureX, curPictureY);
+					int leftPadding = (folderPlaceholderWidth - imgScaled->width) / 2;
+					glRasterPos2f(curPictureX + leftPadding, curPictureY);
+
+					if (folders[i].marked == true)
+						openGlDrawRect(curPictureX, curPictureY, curPictureX + folderPlaceholderWidth, curPictureY + folderPlaceholderHeight);
+					
+					//draw a picture
 					glDrawPixels(imgScaled->width, imgScaled->height, GL_RGB, GL_UNSIGNED_BYTE, imgScaled->imageData);
 
-					//save the current picture rect (in coordinates of a window)
+					//save the current picture rect (in coordinates of a window) to be able detect clicks on it
 					RECT r = {
 						curPictureX,
 						(BACK_BUTTON_HEIGHT+5) + vGap*row + imgScaled->height*row,
@@ -951,6 +988,7 @@ void drawGallery(void * args)
 					};
 					folders[i].winRect = r;
 
+					//calculate a new column or/and a new row for the next picture
 					col++;
 					if (col>columnsNumber-1)
 					{
@@ -958,17 +996,18 @@ void drawGallery(void * args)
 						row++;
 					}
 
+					//free the used memory
 					cvReleaseImage(&imgOriginal);
 					cvReleaseImage(&imgRotated);
 					cvReleaseImage(&imgScaled);
-					
 				}
 			}
 			
 			SwapBuffers(hDc_Gallery);
 			Sleep(30);
 			galleryWindowNeedsRefresh = false;
-			InvalidateRect(hWnd_Gallery, NULL, false);
+			skipFindFolders = false;
+			//InvalidateRect(hWnd_Gallery, NULL, false);
 		}
 	}
 }
@@ -990,6 +1029,8 @@ void drawSession(void * args)
 		return ;
 	}
 
+	glRasterPos2f(0, 0);
+
 	while(1)
 	{
 		if (!sessionWindowNeedsRefresh)
@@ -998,13 +1039,15 @@ void drawSession(void * args)
 		{
 			findPicturesInCurrentFolder();
 
+			//compose a path to the current picture
 			wstring pathTojpg = folders[sessionCurrentFolderIndex].name + L"\\" + picturesInCurrentFolder[sessionCurrentPictureIndex];
-			//convert wstring to char*
-			wchar_t* wchart_pathTojpg = const_cast<wchar_t*>(pathTojpg.c_str());
+			wchar_t* wchart_pathTojpg = const_cast<wchar_t*>(pathTojpg.c_str());//convert wstring to char*
 			char* asciiPathTojpg = new char[wcslen(wchart_pathTojpg) + 1];
 			wcstombs(asciiPathTojpg, wchart_pathTojpg, wcslen(wchart_pathTojpg) + 1);
 			
+			//load from HDD
 			IplImage* imgOriginal = cvLoadImage(asciiPathTojpg, 1);
+			
 			//convert BGR -> RGB
 			char symb;
 			for (int j=0; j<imgOriginal->width * imgOriginal->height * 3; j+=3)
@@ -1014,28 +1057,31 @@ void drawSession(void * args)
 				imgOriginal->imageData[j+2] = symb;
 			}
 
+			//rotate
 			IplImage* imgRotated = rotateImage(imgOriginal);
+
+			//scale to fit a screen
 			int newWidth = 0, newHeight = 0;
 			calculateScaledImageSize(monitorWidth, monitorHeight-(BACK_BUTTON_HEIGHT+5), imgRotated->width, imgRotated->height, &newWidth, &newHeight);
 			IplImage* imgScaled = cvCreateImage(cvSize(newWidth,newHeight), imgRotated->depth, imgRotated->nChannels);
 			cvResize(imgRotated, imgScaled, CV_INTER_LINEAR);
 			
+			//flip
 			cvFlip(imgScaled);
 			
-			glRasterPos2f(0, 0);
+			//draw
 			glDrawPixels(imgScaled->width, imgScaled->height, GL_RGB, GL_UNSIGNED_BYTE, imgScaled->imageData);
-			//glDrawPixels(imgRotated->width, imgRotated->height, GL_RGB, GL_UNSIGNED_BYTE, imgRotated->imageData);
-
-			//cvReleaseImage(&imgOriginal);
-			//cvReleaseImage(&imgRotated);
-			//cvReleaseImage(&imgScaled);
 
 			SwapBuffers(hDc_Session);
-			Sleep(30);
+
+			//free the used memory
+			cvReleaseImage(&imgOriginal);
+			cvReleaseImage(&imgRotated);
+			cvReleaseImage(&imgScaled);
+			//Sleep(30);
 			
 			//InvalidateRect(hWnd_Session, NULL, false);
 			sessionWindowNeedsRefresh = false;
-			
 		}
 	}
 }
@@ -1058,8 +1104,7 @@ void findFoldersWithPictures()
 				if(hFind2 != INVALID_HANDLE_VALUE)
 				{
 					wstring s3(fd.cFileName);
-					FolderProps fp = {s3, {0,0,0,0}};
-					//folders.push_back(s3);
+					FolderProps fp = {s3, {0,0,0,0}, false};
 					folders.push_back(fp);
 				}
 			}
@@ -1148,6 +1193,23 @@ void openGlDrawText(GLfloat x, GLfloat y, char* text, float size)
     {
         glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, *p);
     }
+    glPopMatrix();
+}
+
+void openGlDrawRect(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2)
+{
+    glPushMatrix();
+    
+	//glTranslatef(x, y, 0);		//position
+	unsigned int rgba = 0xff0000ff;
+	glColor4f(
+		((rgba>>24)&0xff)/255.0f,
+		((rgba>>16)&0xff)/255.0f, 
+		((rgba>>8)&0xff)/255.0f,
+		(rgba&0xff)/255.0f);//color
+	//glLineWidth(size*3);		//thickness
+	glRectf(x1,y1,x2,y2);
+
     glPopMatrix();
 }
 

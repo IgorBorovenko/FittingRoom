@@ -30,7 +30,6 @@ SpinigeController::~SpinigeController(void)
 bool SpinigeController::loadPicturesFromFolderIntoArray(char *data, BYTE *imageCount, UINT *imageSizes, wstring folderName)
 {
 	*imageCount = 0;
-	//char *arr = new char[2000000];
 	unsigned int arrPointer = 0;
 
 	WIN32_FIND_DATA fd;
@@ -43,10 +42,6 @@ bool SpinigeController::loadPicturesFromFolderIntoArray(char *data, BYTE *imageC
     if(hFind != INVALID_HANDLE_VALUE)
     {
         do{
-			//wstring s1(fd.cFileName);
-			/////////////////////////////////////
-
-
 			if (result == true)
 			{
 				HANDLE hFile;
@@ -109,102 +104,6 @@ bool SpinigeController::loadPicturesFromFolderIntoArray(char *data, BYTE *imageC
 
 				CloseHandle(hFile);
 			}
-
-
-
-			//////////////////////////////////////
-			//picturesInCurrentFolder.push_back(s1);
-        }while(::FindNextFile(hFind, &fd));
-        ::FindClose(hFind);
-    }
-	
-	return result;
-}
-
-bool SpinigeController::loadPicturesFromFolderIntoVector(vector<char> *data, BYTE *imageCount, UINT *imageSizes, wstring folderName)
-{
-	*imageCount = 0;
-	char *arr = new char[2000000];
-	unsigned int arrPointer = 0;
-
-	WIN32_FIND_DATA fd;
-	wstring searchPath = folderName;
-	searchPath.append(L"\\*.jpg");
-	folderName.append(L"\\");
-	HANDLE hFind=::FindFirstFile(searchPath.c_str(), &fd);
-	bool result = true;
-
-    if(hFind != INVALID_HANDLE_VALUE)
-    {
-        do{
-			//wstring s1(fd.cFileName);
-			/////////////////////////////////////
-
-
-			if (result == true)
-			{
-				HANDLE hFile;
-				//memset(readBuffer, 0, 1920*1080*3);
-
-				try
-				{
-					wstring pathToFile = folderName;
-					pathToFile.append(fd.cFileName);
-					hFile = CreateFile(pathToFile.c_str(),			// file to open
-										GENERIC_READ,			// open for writing
-										0,						// share for writing
-										NULL,					// default security
-										OPEN_EXISTING,			// Opens a file or device, only if it exists. If the specified file or device does not exist, the function fails and the last-error code is set to ERROR_FILE_NOT_FOUND (2).
-										FILE_ATTRIBUTE_NORMAL,	// normal file
-										NULL);					// no attr. template
-					if (hFile == INVALID_HANDLE_VALUE)
-						throw L"CreateFile failed.";
-		
-					DWORD dwPtr = SetFilePointer( hFile, 0, NULL, FILE_BEGIN); //set pointer position to the beginning of the file
-					if (dwPtr == INVALID_SET_FILE_POINTER)
-						throw L"SetFilePointer failed.";
-		
-					bool bErrorFlag = false;
-		
-					DWORD dwBytesWereRead;
-					bErrorFlag = ReadFile(  hFile,          // open file handle
-											readBuffer,		// A pointer to the buffer that receives the data read from a file or device.
-											1920*1080*3,	// number of bytes to read
-											&dwBytesWereRead,// number of bytes that were read
-											NULL);          // no overlapped structure
-					if (bErrorFlag == false)
-						throw L"ReadFile failed.";
-
-					data->insert(data->end(), readBuffer, readBuffer + dwBytesWereRead - 1);
-
-					//arrPointer
-					//memcpy(arr+arrPointer, readBuffer, dwBytesWereRead);
-					//arrPointer += dwBytesWereRead;
-					*imageCount = *imageCount + 1;
-					imageSizes[*imageCount - 1] = dwBytesWereRead;
-				
-				}
-				catch(wchar_t *errorDesc)
-				{
-					result = false;
-					LPCWSTR errorDetails;
-					int errorCode = GetLastError();
-					FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &errorDetails, 0, NULL );
-					wchar_t *fullError = new wchar_t[999];
-					wcscpy(fullError, errorDesc);
-					wcscat(fullError, L" ");
-					wcscat(fullError, errorDetails);
-					MessageBox(NULL, fullError, L"Error", MB_OK);
-					delete[] fullError;
-				}
-
-				CloseHandle(hFile);
-			}
-
-
-
-			//////////////////////////////////////
-			//picturesInCurrentFolder.push_back(s1);
         }while(::FindNextFile(hFind, &fd));
         ::FindClose(hFind);
     }
@@ -216,28 +115,25 @@ void SpinigeController::createSpinigeStorage(wstring folderName)
 {
 	unsigned int dataSize = 0;
 
-	//TODO: 2000 000 
-	char *images = new char[2000000];
-	memset(images, NULL, 2000000);
+	//TODO: change 10000000 to real size 
+	char *images = new char[10000000];
+	memset(images, NULL, 10000000);
 	SpinigeHeader sh = {0,0,0,0,0,0,0,0,0,0,0,0,0};
 	BYTE imageCount = 0;
 	UINT imageSizes[64];
-	//memset(imageSizes, 0, 64);
+	memset(imageSizes, 0, 64 * sizeof(UINT));
 	
 	bool success = loadPicturesFromFolderIntoArray(images, &imageCount, imageSizes, folderName);
-	
 
 	if (success == true)
 	{
 		sh.COUNT_IMAGES = imageCount;
-		memcpy(sh.IMG_SIZE, imageSizes, 256);
-		int headerSize = sizeof SpinigeHeader;
-		for (int i = 0; i < imageCount; i++) dataSize+=imageSizes[i];
+		memcpy(sh.IMG_SIZE, imageSizes, 64 * sizeof(UINT));
+		int headerSize = sizeof(SpinigeHeader);
+		for (int i = 0; i < imageCount; i++)
+			dataSize+=imageSizes[i];
 		char *finalArray = new char[headerSize + dataSize];
-		memset(finalArray, NULL, headerSize + dataSize);
 		memcpy(finalArray, &sh, headerSize);
-		//memcpy(finalArray + headerSize, &data.begin(), data.size());
-		
 		memcpy(&finalArray[headerSize], images, dataSize);
 		
 		WSADATA wsaData;
@@ -267,39 +163,32 @@ void SpinigeController::createSpinigeStorage(wstring folderName)
 		delete[] finalArray;
 	}
 	delete[] images;
-
 }
 
 
 
-void process_http(SOCKET S, char *host, char *page, char *poststr, int length)
+void process_http(SOCKET S, char *host, char *page, char *data, int dataLength)
 {
-	char *sendline = new char[length + 1000]; //1000 - for HTTP header
-	memset(sendline, NULL, length + 1000);
+	char *sendline = new char[dataLength + 200]; //200 - for HTTP header
+	memset(sendline, NULL, dataLength + 200);
 	SSIZE_T n;
-	_snprintf(sendline, MAXSUB,
+	_snprintf(sendline, 200,
 		"POST %s HTTP/1.0\r\n"
 		"Host: %s\r\n"
 		"Content-type: application/octet-stream\r\n"
 		"Content-length: %d\r\n\r\n"
-		"", page, host, length);
-	//strcat(sendline, poststr);
-	int strlensendline = strlen(sendline);
-	memcpy(&sendline[strlensendline], poststr, length);
+		"", page, host, dataLength);
+	int httpHeaderLength = strlen(sendline);
+	memcpy(&sendline[httpHeaderLength], data, dataLength);
 	
 	//TODO check res > 0
-	int res = send(S,sendline,length + 1000,0);
-
-		
+	int res = send(S, sendline, httpHeaderLength + dataLength, 0);
 
 	//char buff[1024];
 	//recv(S,buff,1024,0);
-
 	//ofstream out ("out.txt", ios::out);
 	//for(int i = 0; i < 1024; i++)
-	//{
 	//	out<<buff[i];
-	//}
 	//out.close();
 
 	 delete[] sendline;

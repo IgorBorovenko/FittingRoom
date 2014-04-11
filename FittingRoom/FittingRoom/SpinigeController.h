@@ -1,8 +1,6 @@
 #pragma once
 #include "MyConstants.h"
 #include <vector>
-#include "SpinigeController.h"
-
 #pragma comment(lib,"Ws2_32.lib")
 #include <WinSock2.h>
 #include <WS2tcpip.h>
@@ -15,8 +13,6 @@ public:
 	SpinigeController(void);
 	~SpinigeController(void);
 	void createSpinigeStorage(wstring folderName);
-	
-	bool SpinigeController::loadPicturesFromFolderIntoVector(vector<char> *data, BYTE *imageCount, UINT *imageSizes, wstring folderName);
 	bool SpinigeController::loadPicturesFromFolderIntoArray(char *data, BYTE *imageCount, UINT *imageSizes, wstring folderName);
 
 #pragma pack(push,1)
@@ -37,6 +33,4 @@ public:
 		UINT 		IMG_SIZE[64];
 	};
 #pragma pack(pop)
-
-
 };
