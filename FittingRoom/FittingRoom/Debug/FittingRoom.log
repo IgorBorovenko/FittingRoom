@@ -1,10 +1,11 @@
-﻿Build started 11.04.2014 17:18:13.
+﻿Build started 15.04.2014 17:54:06.
      1>Project "C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\FittingRoom\FittingRoom.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\FittingRoom.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
          All outputs are up-to-date.
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\FittingRoom.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt FittingRoom.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\FittingRoom.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt FittingRoom.cpp FolderProperties.cpp
+         FolderProperties.cpp
          FittingRoom.cpp
      1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\opencv2\flann\logger.h(66): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(234) : see declaration of 'fopen'
@@ -27,11 +28,13 @@
      1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(491): warning C4101: 'dwThreadId' : unreferenced local variable
      1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(878): warning C4996: 'itoa': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _itoa. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdlib.h(867) : see declaration of 'itoa'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(933): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(943): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(992): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1107): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdlib.h(533) : see declaration of 'wcstombs'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1046): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1153): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1176): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdlib.h(533) : see declaration of 'wcstombs'
+         Generating Code...
        ResourceCompile:
          All outputs are up-to-date.
        ManifestResourceCompile:
@@ -41,6 +44,7 @@
          Debug\FittingRoom.exe.embed.manifest.res
          Debug\CamerasController.obj
          Debug\FittingRoom.obj
+         Debug\FolderProperties.obj
          Debug\SpinigeController.obj
          Debug\stdafx.obj
        Manifest:
@@ -56,4 +60,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:02.60
+Time Elapsed 00:00:02.34

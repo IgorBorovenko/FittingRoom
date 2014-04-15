@@ -17,7 +17,7 @@ void openGlDrawText(GLfloat x, GLfloat y, char* text, float size);
 
 
 // Gallery Window vars
-struct FolderProps{wstring name; RECT winRect; bool marked;};
+struct FolderProps{wstring name; RECT winRect; bool marked; IplImage* thumbnail;};
 HDC hDc_Gallery;
 HWND hWnd_Gallery;
 vector <FolderProps> folders;
@@ -914,18 +914,12 @@ void drawGallery(void * args)
 	while(1)
 	{
 		if (!galleryWindowNeedsRefresh)
-			Sleep(100);
+			Sleep(20);
 		else
 		{
 			if (skipFindFolders == false)
 				findFoldersWithPictures();
 
-			/*const int folderPlaceholderWidth = 108;
-			const int folderPlaceholderHeight = 192;*/
-			const int folderPlaceholderWidth = 128;
-			const int folderPlaceholderHeight = 192;
-			const int hGap = 10;
-			const int vGap = 10;
 			const int columnsNumber = monitorWidth/(folderPlaceholderWidth + hGap);
 			const int rowsNumber = (monitorHeight-(BACK_BUTTON_HEIGHT+5))/(folderPlaceholderHeight+vGap);
 			int col = 0, row = 0;
@@ -934,6 +928,7 @@ void drawGallery(void * args)
 			{
 				if (row < rowsNumber)
 				{
+					/*
 					//compose a path to 1.jpg
 					wstring pathTo1jpg = folders[i].name;
 					wstring s2 (L"\\1.jpg");
@@ -966,6 +961,9 @@ void drawGallery(void * args)
 
 					//flip
 					cvFlip(imgScaled);
+					*/
+
+					IplImage* imgScaled = folders[i].thumbnail;
 
 					//calculate coordinates
 					int curPictureX = 10 + hGap*col + folderPlaceholderWidth*col;
@@ -997,18 +995,16 @@ void drawGallery(void * args)
 					}
 
 					//free the used memory
-					cvReleaseImage(&imgOriginal);
-					cvReleaseImage(&imgRotated);
-					cvReleaseImage(&imgScaled);
+					//cvReleaseImage(&imgOriginal);
+					//cvReleaseImage(&imgRotated);
+					//cvReleaseImage(&imgScaled);
 				}
 			}
 			
 			SwapBuffers(hDc_Gallery);
-			Sleep(30);
 			galleryWindowNeedsRefresh = false;
 			skipFindFolders = false;
-			//InvalidateRect(hWnd_Gallery, NULL, false);
-		}
+		} 
 	}
 }
 /*=================================================================================================================================*/
@@ -1078,6 +1074,7 @@ void drawSession(void * args)
 			cvReleaseImage(&imgOriginal);
 			cvReleaseImage(&imgRotated);
 			cvReleaseImage(&imgScaled);
+			delete[] asciiPathTojpg;
 			//Sleep(30);
 			
 			//InvalidateRect(hWnd_Session, NULL, false);
@@ -1086,8 +1083,11 @@ void drawSession(void * args)
 	}
 }
 /*=================================================================================================================================*/
-void findFoldersWithPictures()
+inline void findFoldersWithPictures()
 {
+	for (int i = 0; i < folders.size(); i++)
+		cvReleaseImage(&folders[i].thumbnail);
+
 	folders.clear();
 	WIN32_FIND_DATA fd;
     HANDLE hFind=::FindFirstFile(convertCharArrayToLPCWSTR("*.*"), &fd);
@@ -1104,7 +1104,41 @@ void findFoldersWithPictures()
 				if(hFind2 != INVALID_HANDLE_VALUE)
 				{
 					wstring s3(fd.cFileName);
-					FolderProps fp = {s3, {0,0,0,0}, false};
+					FolderProps fp = {s3, {0,0,0,0}, false, NULL};
+
+					wchar_t* wchart_pathTo1jpg = const_cast<wchar_t*>(s1.c_str()); //convert wstring to char*
+					char* asciiPathTo1jpg = new char[wcslen(wchart_pathTo1jpg) + 1];
+					wcstombs(asciiPathTo1jpg, wchart_pathTo1jpg, wcslen(wchart_pathTo1jpg) + 1 );
+
+					IplImage* imgOriginal = cvLoadImage(asciiPathTo1jpg, 1);
+
+					//convert BGR -> RGB
+					char symb;
+					for (int j=0; j<imgOriginal->width * imgOriginal->height * 3; j+=3)
+					{
+						symb = imgOriginal->imageData[j+0];
+						imgOriginal->imageData[j+0] = imgOriginal->imageData[j+2];
+						imgOriginal->imageData[j+2] = symb;
+					}
+
+					//rotate
+					IplImage* imgRotated = rotateImage(imgOriginal);
+
+					//scale to fit a placeholder
+					int scaledImgWidth = 0;
+					int scaledImgHeight = 0;
+					calculateScaledImageSize(folderPlaceholderWidth, folderPlaceholderHeight, imgRotated->width, imgRotated->height, &scaledImgWidth, &scaledImgHeight);
+					IplImage* imgScaled = cvCreateImage(cvSize(scaledImgWidth,scaledImgHeight), imgRotated->depth, imgRotated->nChannels);
+					cvResize(imgRotated, imgScaled, CV_INTER_LINEAR);
+
+					//flip
+					cvFlip(imgScaled);
+
+					cvReleaseImage(&imgOriginal);
+					cvReleaseImage(&imgRotated);
+					delete[] asciiPathTo1jpg;
+
+					fp.thumbnail = imgScaled;
 					folders.push_back(fp);
 				}
 			}

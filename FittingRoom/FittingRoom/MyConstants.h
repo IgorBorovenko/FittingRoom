@@ -17,3 +17,8 @@ const int TOUCH_MOVEMENT_UP = 402;
 const int TOUCH_MOVEMENT_DOWN = 403;
 // Igor
 const int BACK_BUTTON_HEIGHT = 100;
+
+			const int folderPlaceholderWidth = 128;
+			const int folderPlaceholderHeight = 192;
+			const int hGap = 10;
+			const int vGap = 10;
