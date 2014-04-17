@@ -20,6 +20,7 @@ void openGlDrawText(GLfloat x, GLfloat y, char* text, float size);
 struct FolderProps{wstring name; RECT winRect; bool marked; IplImage* thumbnail;};
 HDC hDc_Gallery;
 HWND hWnd_Gallery;
+HWND hWndGalleryCompareButton;
 vector <FolderProps> folders;
 bool galleryWindowNeedsRefresh = false;
 bool skipFindFolders = false;
@@ -31,7 +32,7 @@ LRESULT CALLBACK WndProc_Gallery(HWND, UINT, WPARAM, LPARAM);
 void drawGallery(void * args);
 void findFoldersWithPictures();
 void takeSnapshots(void * args);
-void openGlDrawRect(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2);
+void openGlDrawRect(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, unsigned int rgba);
 
 // Session Window vars
 HDC hDc_Session;
@@ -229,12 +230,26 @@ BOOL CreateWindow_Gallery(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWi
 											  WS_VISIBLE | WS_CHILD /*| BS_DEFPUSHBUTTON*/,
 											  monitorInfo.rcMonitor.left, 
 											  monitorInfo.rcMonitor.top,
-											  monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
+											  (monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left) / 2 - 5,
 											  100,
 											  hWnd_Gallery,
 											  (HMENU)GALLERY_BACK_BUTTON,
 											  hInst,
 											  NULL);
+
+	hWndGalleryCompareButton = CreateWindow(TEXT("button"), 
+											  TEXT("Compare"),
+											  WS_VISIBLE | WS_CHILD /*| BS_DEFPUSHBUTTON*/,
+											  (monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left) / 2 + 5, 
+											  monitorInfo.rcMonitor.top,
+											  (monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left) / 2 - 5,
+											  100,
+											  hWnd_Gallery,
+											  (HMENU)GALLERY_BACK_BUTTON,
+											  hInst,
+											  NULL);
+	ShowWindow(hWndGalleryCompareButton, SW_HIDE);
+
 	hDc_Gallery = GetDC(hWnd_Gallery);
 	ShowWindow(hWnd_Gallery, 0);
 	RegisterTouchWindow(hWnd_Gallery, 0);
@@ -422,11 +437,30 @@ LRESULT CALLBACK WndProc_Gallery(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
 						if (longTouch == true)
 						{
-							//mark or unmark the folder as selected for comparsion
-							folders[folderIndex].marked = !folders[folderIndex].marked;
-							//redraw selection
-							skipFindFolders = true;
-							galleryWindowNeedsRefresh = true;
+							int markedFoldersCount = 0;
+							for (int i = 0; i < folders.size(); i++)
+								if (folders[i].marked == true)
+									markedFoldersCount++;
+
+							if (folders[folderIndex].marked == true)
+								//unmark the folder as selected for comparsion
+								folders[folderIndex].marked = false;
+							else 
+								if (markedFoldersCount < 4)
+								{
+									//mark the folder as selected for comparsion
+									folders[folderIndex].marked = true;
+									//redraw selection
+									skipFindFolders = true;
+									galleryWindowNeedsRefresh = true;
+								}
+
+							markedFoldersCount = 0;
+							for (int i = 0; i < folders.size(); i++)
+								if (folders[i].marked == true)
+									markedFoldersCount++;
+							if (markedFoldersCount > 1)
+								ShowWindow(hWndGalleryCompareButton, SW_SHOW);
 						}
 						else
 						{
@@ -440,6 +474,8 @@ LRESULT CALLBACK WndProc_Gallery(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 						break;
 					}
 				}
+
+
 				break;
 			}
 		case WM_COMMAND:
@@ -914,9 +950,12 @@ void drawGallery(void * args)
 	while(1)
 	{
 		if (!galleryWindowNeedsRefresh)
-			Sleep(20);
+			Sleep(50);
 		else
 		{
+			//clear the screen
+			openGlDrawRect(0,0, monitorWidth, (monitorHeight-(BACK_BUTTON_HEIGHT+5)), 0x000000ff);
+
 			if (skipFindFolders == false)
 				findFoldersWithPictures();
 
@@ -963,7 +1002,7 @@ void drawGallery(void * args)
 					cvFlip(imgScaled);
 					*/
 
-					IplImage* imgScaled = folders[i].thumbnail;
+					IplImage *imgScaled = folders[i].thumbnail;
 
 					//calculate coordinates
 					int curPictureX = 10 + hGap*col + folderPlaceholderWidth*col;
@@ -971,8 +1010,9 @@ void drawGallery(void * args)
 					int leftPadding = (folderPlaceholderWidth - imgScaled->width) / 2;
 					glRasterPos2f(curPictureX + leftPadding, curPictureY);
 
+					//draw selection if marked
 					if (folders[i].marked == true)
-						openGlDrawRect(curPictureX, curPictureY, curPictureX + folderPlaceholderWidth, curPictureY + folderPlaceholderHeight);
+						openGlDrawRect(curPictureX, curPictureY, curPictureX + folderPlaceholderWidth, curPictureY + folderPlaceholderHeight, 0x0000ff00);
 					
 					//draw a picture
 					glDrawPixels(imgScaled->width, imgScaled->height, GL_RGB, GL_UNSIGNED_BYTE, imgScaled->imageData);
@@ -981,7 +1021,8 @@ void drawGallery(void * args)
 					RECT r = {
 						curPictureX,
 						(BACK_BUTTON_HEIGHT+5) + vGap*row + imgScaled->height*row,
-						curPictureX + imgScaled->width,
+						//curPictureX + imgScaled->width,
+						curPictureX + folderPlaceholderWidth,
 						(BACK_BUTTON_HEIGHT+5) + vGap*row + imgScaled->height*(row + 1)
 					};
 					folders[i].winRect = r;
@@ -993,15 +1034,11 @@ void drawGallery(void * args)
 						col = 0;
 						row++;
 					}
-
-					//free the used memory
-					//cvReleaseImage(&imgOriginal);
-					//cvReleaseImage(&imgRotated);
-					//cvReleaseImage(&imgScaled);
 				}
 			}
 			
 			SwapBuffers(hDc_Gallery);
+			InvalidateRect(hWnd_Gallery, NULL, false);
 			galleryWindowNeedsRefresh = false;
 			skipFindFolders = false;
 		} 
@@ -1085,31 +1122,41 @@ void drawSession(void * args)
 /*=================================================================================================================================*/
 inline void findFoldersWithPictures()
 {
+	//hide "compare" button
+	ShowWindow(hWndGalleryCompareButton, SW_HIDE);
+	
+	//free all memory under IplImages in "folders"
 	for (int i = 0; i < folders.size(); i++)
 		cvReleaseImage(&folders[i].thumbnail);
 
 	folders.clear();
+
 	WIN32_FIND_DATA fd;
+	//find all files in the application directory 
     HANDLE hFind=::FindFirstFile(convertCharArrayToLPCWSTR("*.*"), &fd);
     if(hFind != INVALID_HANDLE_VALUE)
     {
         do{
+			//check if it's a directory
 			if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
 				wstring s1(fd.cFileName);
 				wstring s2(L"\\1.jpg");
 				s1 = s1 + s2;
 				WIN32_FIND_DATA fd2;
+				//find 1.jpg in the current directory
 				HANDLE hFind2=::FindFirstFile(s1.c_str(), &fd2);
 				if(hFind2 != INVALID_HANDLE_VALUE)
 				{
 					wstring s3(fd.cFileName);
 					FolderProps fp = {s3, {0,0,0,0}, false, NULL};
 
+					//convert wstring to char*
 					wchar_t* wchart_pathTo1jpg = const_cast<wchar_t*>(s1.c_str()); //convert wstring to char*
 					char* asciiPathTo1jpg = new char[wcslen(wchart_pathTo1jpg) + 1];
 					wcstombs(asciiPathTo1jpg, wchart_pathTo1jpg, wcslen(wchart_pathTo1jpg) + 1 );
 
+					//load 1.jpg
 					IplImage* imgOriginal = cvLoadImage(asciiPathTo1jpg, 1);
 
 					//convert BGR -> RGB
@@ -1134,6 +1181,7 @@ inline void findFoldersWithPictures()
 					//flip
 					cvFlip(imgScaled);
 
+					//free used memory
 					cvReleaseImage(&imgOriginal);
 					cvReleaseImage(&imgRotated);
 					delete[] asciiPathTo1jpg;
@@ -1230,18 +1278,15 @@ void openGlDrawText(GLfloat x, GLfloat y, char* text, float size)
     glPopMatrix();
 }
 
-void openGlDrawRect(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2)
+void openGlDrawRect(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, unsigned int rgba)
 {
     glPushMatrix();
     
-	//glTranslatef(x, y, 0);		//position
-	unsigned int rgba = 0xff0000ff;
 	glColor4f(
 		((rgba>>24)&0xff)/255.0f,
 		((rgba>>16)&0xff)/255.0f, 
 		((rgba>>8)&0xff)/255.0f,
-		(rgba&0xff)/255.0f);//color
-	//glLineWidth(size*3);		//thickness
+		(rgba&0xff)/255.0f);
 	glRectf(x1,y1,x2,y2);
 
     glPopMatrix();
