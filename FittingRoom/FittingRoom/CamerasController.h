@@ -4,8 +4,10 @@
 #include "process.h"
 #include <ctime>
 #include "MyConstants.h"
-#include "GetFotosFromCams.h"
-#pragma comment(lib, "GetFotosFromCams.lib")
+//#include "GetFotosFromCams.h"
+//#pragma comment(lib, "GetFotosFromCams.lib")
+#include "getFotosFromCamsAlt.h"
+#pragma comment(lib, "GetFotosFromCamsAlt.lib")
 #include "opencv\cv.h"
 #include "opencv\highgui.h"
 #pragma comment(lib, "opencv_core241d.lib")
@@ -27,11 +29,21 @@ class CamerasController
 		
 		Camera * CurrentCamera;
 		Camera Cameras[CAMERAS_COUNT];
+		bool flagCameraStopped;
 		// methods
 		bool ReadConfig();
 		// get video from current camera
 		static void BeginShowThreadEntry(void * args);
+		static void BeginShowThreadEntry1(void * args);
+		static void BeginShowThreadEntry2(void * args);
+		static void BeginShowThreadEntry3(void * args);
+		static void BeginShowThreadEntry4(void * args);
+
 		void BeginShowThreadBody();
+		void BeginShowThreadBody1();
+		void BeginShowThreadBody2();
+		void BeginShowThreadBody3();
+		void BeginShowThreadBody4();
 		wchar_t *CamerasController::convertCharArrayToLPCWSTR(const char* charArray);
 
 	public:

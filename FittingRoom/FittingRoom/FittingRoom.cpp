@@ -1,8 +1,12 @@
+#pragma region Includes
 #include "stdafx.h"
 #include "FittingRoom.h"
 #include "SpinigeController.h"
 #include "glut.h"
+#include "glut.h"
+#pragma endregion
 
+#pragma region Main Window 
 // Main Window vars
 HDC hDc_Main;
 HWND hWnd_Main;
@@ -14,8 +18,9 @@ BOOL CreateWindow_Main(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWindo
 LRESULT CALLBACK WndProc_Main(HWND, UINT, WPARAM, LPARAM);
 void TouchEndHandler_Main();
 void openGlDrawText(GLfloat x, GLfloat y, char* text, float size);
+#pragma endregion
 
-
+#pragma region Gallery Window 
 // Gallery Window vars
 struct FolderProps{wstring name; RECT winRect; bool marked; IplImage* thumbnail;};
 HDC hDc_Gallery;
@@ -33,14 +38,18 @@ void drawGallery(void * args);
 void findFoldersWithPictures();
 void takeSnapshots(void * args);
 void openGlDrawRect(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, unsigned int rgba);
+#pragma endregion
 
+#pragma region Session Window 
 // Session Window vars
+struct PictureProps{wstring name; IplImage* image;};
 HDC hDc_Session;
 HWND hWnd_Session;
 int sessionCurrentFolderIndex = -1;
 int sessionCurrentPictureIndex = -1;
 bool sessionWindowNeedsRefresh = false;
-vector <wstring> picturesInCurrentFolder;
+bool skipFindPicturesInFolder = false;
+vector <PictureProps> picturesInCurrentFolder;
 TCHAR szWindowClass_Session[MAX_LOADSTRING] = L"szWindowClass_Session"; // the main window class name
 ULONGLONG ticksAtTouchStart = 0;
 // Session Window funcs
@@ -49,7 +58,22 @@ LRESULT CALLBACK WndProc_Session(HWND, UINT, WPARAM, LPARAM);
 void TouchEndHandler_Session();
 void drawSession(void * args);
 void findPicturesInCurrentFolder();
+void gallerySelectFolder(int folderIndex);
+void galleryUnselectFolder(int folderIndex);
+#pragma endregion
 
+#pragma region Comparsion Window
+// Comparsion Window vars
+HDC hDc_Comparsion;
+HWND hWnd_Comparsion;
+TCHAR szWindowClass_Comparsion[MAX_LOADSTRING] = L"szWindowClass_Comparsion"; // the main window class name
+bool comparsionWindowNeedsRefresh = false;
+// Comparsion Window funcs
+BOOL CreateWindow_Comparsion(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWindow);
+LRESULT CALLBACK WndProc_Comparsion(HWND, UINT, WPARAM, LPARAM);
+void drawComparsion(void * args);
+void TouchEndHandler_Comparsion();
+#pragma endregion
 
 // my global variables
 HINSTANCE hInst; // current instance
@@ -109,6 +133,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	//start session display thread
 	_beginthread(drawSession, 0, NULL);
 
+	//start session display thread
+	_beginthread(drawComparsion, 0, NULL);
+
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_FITTINGROOM));
 	// Main message loop:
 	while (GetMessage(&msg, NULL, 0, 0))
@@ -142,7 +169,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	bool mainWindowOk = CreateWindow_Main(monitorInfo, nCmdShow, isShowInWindow);
 	bool galleryWindowOk = CreateWindow_Gallery(monitorInfo, nCmdShow, isShowInWindow);
 	bool sessionWindowOk = CreateWindow_Session(monitorInfo, nCmdShow, isShowInWindow);
-	if (mainWindowOk && galleryWindowOk && sessionWindowOk)
+	bool comparsionWindowOk = CreateWindow_Comparsion(monitorInfo, nCmdShow, isShowInWindow);
+	if (mainWindowOk && galleryWindowOk && sessionWindowOk && comparsionWindowOk)
 		return true;
 	else
 		return false;
@@ -245,7 +273,7 @@ BOOL CreateWindow_Gallery(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWi
 											  (monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left) / 2 - 5,
 											  100,
 											  hWnd_Gallery,
-											  (HMENU)GALLERY_BACK_BUTTON,
+											  (HMENU)GALLERY_COMPARE_BUTTON,
 											  hInst,
 											  NULL);
 	ShowWindow(hWndGalleryCompareButton, SW_HIDE);
@@ -297,6 +325,50 @@ BOOL CreateWindow_Session(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWi
 	hDc_Session = GetDC(hWnd_Session);
 	ShowWindow(hWnd_Session, 0);
 	RegisterTouchWindow(hWnd_Session, 0);
+	return TRUE;
+}
+
+BOOL CreateWindow_Comparsion(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWindow)
+{
+	// create the session window
+	RegisterWindowClass(hInst, WndProc_Comparsion, szWindowClass_Comparsion);
+	if(isShowInWindow)
+	{
+		hWnd_Comparsion = CreateWindow(szWindowClass_Comparsion, L"Comparsion", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInst, NULL);
+	}
+	else
+	{
+		hWnd_Comparsion = CreateWindow(szWindowClass_Comparsion,
+									L"Comparsion",
+									WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+									monitorInfo.rcMonitor.left, 
+									monitorInfo.rcMonitor.top,
+									monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
+									monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top,
+									NULL, NULL,  hInst, 0);
+	}
+	if (!hWnd_Comparsion)
+	{
+		LPCWSTR errorDetails;
+		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR) &errorDetails, 0, NULL);
+		MessageBox(NULL, errorDetails, L"Comparsion init error", MB_OK);
+		return FALSE;
+	}
+	// draw a button "Back" 
+	HWND hWndComparsionBackButton = CreateWindow(TEXT("button"), 
+											  TEXT("<-- Back"),
+											  WS_VISIBLE | WS_CHILD /*| BS_DEFPUSHBUTTON*/,
+											  monitorInfo.rcMonitor.left, 
+											  monitorInfo.rcMonitor.top,
+											  monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
+											  100,
+											  hWnd_Comparsion,
+											  (HMENU)COMPARSION_BACK_BUTTON,
+											  hInst,
+											  NULL);
+	hDc_Comparsion = GetDC(hWnd_Comparsion);
+	ShowWindow(hWnd_Comparsion, 0);
+	RegisterTouchWindow(hWnd_Comparsion, 0);
 	return TRUE;
 }
 
@@ -437,37 +509,37 @@ LRESULT CALLBACK WndProc_Gallery(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
 						if (longTouch == true)
 						{
+							//count currently selected folders
 							int markedFoldersCount = 0;
 							for (int i = 0; i < folders.size(); i++)
 								if (folders[i].marked == true)
 									markedFoldersCount++;
 
+							//select or unselect current folder depending on the current selection
 							if (folders[folderIndex].marked == true)
-								//unmark the folder as selected for comparsion
-								folders[folderIndex].marked = false;
+								galleryUnselectFolder(folderIndex);
 							else 
 								if (markedFoldersCount < 4)
-								{
-									//mark the folder as selected for comparsion
-									folders[folderIndex].marked = true;
-									//redraw selection
-									skipFindFolders = true;
-									galleryWindowNeedsRefresh = true;
-								}
+									gallerySelectFolder(folderIndex);
 
+							//refresh "Compare" button visibility
 							markedFoldersCount = 0;
 							for (int i = 0; i < folders.size(); i++)
 								if (folders[i].marked == true)
 									markedFoldersCount++;
 							if (markedFoldersCount > 1)
 								ShowWindow(hWndGalleryCompareButton, SW_SHOW);
+							else
+								ShowWindow(hWndGalleryCompareButton, SW_HIDE);
 						}
 						else
 						{
+							//show photo session
 							ShowWindow(hWnd_Session, 1);
 							UpdateWindow(hWnd_Session);
 							sessionCurrentFolderIndex = folderIndex;
 							sessionCurrentPictureIndex = 0;
+							skipFindPicturesInFolder = false;
 							sessionWindowNeedsRefresh = true;
 						}
 
@@ -489,6 +561,11 @@ LRESULT CALLBACK WndProc_Gallery(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 					ShowWindow(hWnd_Gallery, 0);
 					ShowWindow(hWnd_Main, 1);
 					UpdateWindow(hWnd_Main);
+					break;
+				case GALLERY_COMPARE_BUTTON:
+					ShowWindow(hWnd_Gallery, SW_HIDE);
+					ShowWindow(hWnd_Comparsion, SW_SHOW);
+					UpdateWindow(hWnd_Comparsion);
 					break;
 				default:
 					return DefWindowProc(hWnd, message, wParam, lParam);
@@ -635,6 +712,113 @@ LRESULT CALLBACK WndProc_Session(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 	return 0;
 }
 
+LRESULT CALLBACK WndProc_Comparsion(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	RECT rcClient;                 // client area rectangle 
+	POINT ptClientUL;              // client upper left corner 
+    POINT ptClientLR;              // client lower right corner 
+	int wmId, wmEvent;
+	PAINTSTRUCT ps;
+	//FLICK_DATA fd;
+	DWORD dwThreadId;
+	DWORD a = 0;
+
+	switch (message)
+	{
+		case WM_MOUSEMOVE:
+			if (wParam & MK_LBUTTON) 
+            {
+				POINTS pts = MAKEPOINTS(lParam); 
+				
+				TOUCHINPUT ti = {
+					pts.x * 100,
+					pts.y * 100,
+					NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL
+				};
+
+				TouchHandler(ti);
+			}
+			break;
+
+		case WM_LBUTTONUP:
+			{
+				TouchEndHandler_Comparsion();
+				break;
+			}
+        case WM_TOUCH:
+            {
+                // WM_TOUCH message can contain several messages from different contacts
+                // packed together.
+                // Message parameters need to be decoded:
+                unsigned int numInputs = (unsigned int) wParam; // Number of actual per-contact messages
+                TOUCHINPUT* ti = new TOUCHINPUT[numInputs]; // Allocate the storage for the parameters of the per-contact messages
+                if (ti == NULL)
+                {
+                    break;
+                }
+                // Unpack message parameters into the array of TOUCHINPUT structures, each
+                // representing a message for one single contact.
+                if (GetTouchInputInfo((HTOUCHINPUT)lParam, numInputs, ti, sizeof(TOUCHINPUT)))
+                {
+                    // For each contact, dispatch the message to the appropriate message
+                    // handler.
+                    for (int i = 0; i < numInputs; ++i)
+                    {
+                        if (ti[i].dwFlags & TOUCHEVENTF_DOWN)
+                        {
+							CurrentTouchesCount++;
+                            TouchHandler(ti[i]);
+                        }
+                        else if (ti[i].dwFlags & TOUCHEVENTF_MOVE)
+                        {
+                            TouchHandler(ti[i]);
+                        }
+                        else if (ti[i].dwFlags & TOUCHEVENTF_UP)
+                        {
+							CurrentTouchesCount--;
+                            TouchHandler(ti[i]);
+							if (CurrentTouchesCount == 0)
+							{
+								TouchEndHandler_Comparsion();
+							}
+                        }
+                    }
+                }
+                CloseTouchInputHandle((HTOUCHINPUT)lParam);
+                delete [] ti;
+            }
+            break;
+		case WM_COMMAND:
+			wmId    = LOWORD(wParam);
+			wmEvent = HIWORD(wParam);
+			// Parse the menu selections:
+			switch (wmId)
+			{
+				case COMPARSION_BACK_BUTTON:
+				{
+					ShowWindow(hWnd_Comparsion, SW_HIDE);
+					ShowWindow(hWnd_Gallery, SW_SHOWNORMAL);
+					UpdateWindow(hWnd_Gallery);
+					break;
+				}
+				default:
+					return DefWindowProc(hWnd, message, wParam, lParam);
+			}
+			break;
+		case WM_CLOSE:
+			ShowWindow(hWnd_Comparsion, SW_HIDE);
+			ShowWindow(hWnd_Gallery, SW_SHOWNORMAL);
+			UpdateWindow(hWnd_Gallery);
+			break;
+		case WM_DESTROY:
+			DestroyWindow(hWnd_Session);
+			break;
+	
+		default:
+			return DefWindowProc(hWnd, message, wParam, lParam);
+	}
+	return 0;
+}
 
 #pragma region Processing touches
 /*=================================================================================================================================*/
@@ -775,6 +959,76 @@ void TouchEndHandler_Session()
 	}
 }
 /*=================================================================================================================================*/
+void TouchEndHandler_Comparsion()
+{
+	int direction = GetTouchesResult();
+	switch(direction)
+	{
+	case TOUCH_MOVEMENT_DOWN:
+		{
+			MessageBox(hWnd_Comparsion, L"down", L"Error", MB_OK);
+
+			//open the gallery window
+			//ShowWindow(hWndGallery, 1);
+			//galleryWindowNeedsRefresh = true;
+			break;
+		}
+	case TOUCH_MOVEMENT_UP:
+		{
+			MessageBox(hWnd_Comparsion, L"up", L"Error", MB_OK);
+			/*PostQuitMessage(0);
+			spinige.createSpinigeStorage(folders[sessionCurrentFolderIndex].name);*/
+			break;
+		}
+	case TOUCH_MOVEMENT_LEFT:
+		{
+			MessageBox(hWnd_Comparsion, L"left", L"Error", MB_OK);
+			/*
+			sessionCurrentPictureIndex++;
+			if (sessionCurrentPictureIndex == picturesInCurrentFolder.size())
+				sessionCurrentPictureIndex = 0;
+
+			sessionWindowNeedsRefresh = true;
+			*/
+			break;
+		}
+	case TOUCH_MOVEMENT_RIGHT:
+		{
+			MessageBox(hWnd_Comparsion, L"left", L"Error", MB_OK);
+			/*
+			sessionCurrentPictureIndex--;
+			if (sessionCurrentPictureIndex == -1)
+				sessionCurrentPictureIndex = picturesInCurrentFolder.size() - 1;
+
+			sessionWindowNeedsRefresh = true;
+			*/
+			break;
+		}
+	case -1:
+		//not enough points made to define a direction
+		break;
+	default:
+		MessageBox(NULL, L"invalid direction", L"Error", MB_OK);
+	}
+}
+/*=================================================================================================================================*/
+void gallerySelectFolder(int folderIndex)
+{
+	//mark the folder as selected for comparsion
+	folders[folderIndex].marked = true;
+	//redraw selection
+	skipFindFolders = true;
+	galleryWindowNeedsRefresh = true;
+}
+/*=================================================================================================================================*/
+void galleryUnselectFolder(int folderIndex)
+{
+	//unmark the folder as selected for comparsion
+	folders[folderIndex].marked = false;
+	//redraw selection
+	skipFindFolders = true;
+	galleryWindowNeedsRefresh = true;
+}
 #pragma endregion
 
 /*=================================================================================================================================*/
@@ -1064,16 +1318,99 @@ void drawSession(void * args)
 
 	glRasterPos2f(0, 0);
 
-	while(1)
+	while(true)
 	{
 		if (!sessionWindowNeedsRefresh)
-			Sleep(100);
+			Sleep(50);
+		else
+		{
+			if (!skipFindPicturesInFolder)
+			{
+				findPicturesInCurrentFolder();
+				skipFindPicturesInFolder = true;
+			}
+
+			/*
+			//compose a path to the current picture
+			wstring pathTojpg = folders[sessionCurrentFolderIndex].name + L"\\" + picturesInCurrentFolder[sessionCurrentPictureIndex];
+			wchar_t* wchart_pathTojpg = const_cast<wchar_t*>(pathTojpg.c_str());//convert wstring to char*
+			char* asciiPathTojpg = new char[wcslen(wchart_pathTojpg) + 1];
+			wcstombs(asciiPathTojpg, wchart_pathTojpg, wcslen(wchart_pathTojpg) + 1);
+			
+			//load from HDD
+			IplImage* imgOriginal = cvLoadImage(asciiPathTojpg, 1);
+			
+			//convert BGR -> RGB
+			char symb;
+			for (int j=0; j<imgOriginal->width * imgOriginal->height * 3; j+=3)
+			{
+				symb = imgOriginal->imageData[j+0];
+				imgOriginal->imageData[j+0] = imgOriginal->imageData[j+2];
+				imgOriginal->imageData[j+2] = symb;
+			}
+
+			//rotate
+			IplImage* imgRotated = rotateImage(imgOriginal);
+
+			//scale to fit a screen
+			int newWidth = 0, newHeight = 0;
+			calculateScaledImageSize(monitorWidth, monitorHeight-(BACK_BUTTON_HEIGHT+5), imgRotated->width, imgRotated->height, &newWidth, &newHeight);
+			IplImage* imgScaled = cvCreateImage(cvSize(newWidth,newHeight), imgRotated->depth, imgRotated->nChannels);
+			cvResize(imgRotated, imgScaled, CV_INTER_LINEAR);
+			
+			//flip
+			cvFlip(imgScaled);
+			*/
+
+			IplImage *imgScaled = picturesInCurrentFolder[sessionCurrentPictureIndex].image;
+
+			//draw
+			glDrawPixels(imgScaled->width, imgScaled->height, GL_RGB, GL_UNSIGNED_BYTE, imgScaled->imageData);
+
+			SwapBuffers(hDc_Session);
+
+			//free the used memory
+			/*cvReleaseImage(&imgOriginal);
+			cvReleaseImage(&imgRotated);
+			cvReleaseImage(&imgScaled);
+			delete[] asciiPathTojpg;*/
+			//Sleep(30);
+			
+			//InvalidateRect(hWnd_Session, NULL, false);
+			sessionWindowNeedsRefresh = false;
+		}
+	}
+}
+
+void drawComparsion(void * args)
+{
+	//get monitor size
+	const POINT ptZero = { 0, 0 };
+	HMONITOR hmon = MonitorFromPoint(ptZero, MONITOR_DEFAULTTOPRIMARY);
+	MONITORINFO mi = { sizeof(mi) };
+	if (!GetMonitorInfo(hmon, &mi)) 
+		return ;
+	int monitorWidth = mi.rcMonitor.right - mi.rcMonitor.left;
+	int monitorHeight = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+	if(InitializeOpenGL(hWnd_Session, monitorWidth, monitorHeight-(BACK_BUTTON_HEIGHT+5)) < 1)
+	{
+		MessageBox(NULL, L"OpenGL initialization Error", L"Session window", MB_OK);
+		return ;
+	}
+
+	glRasterPos2f(0, 0);
+
+	while(1)
+	{
+		if (!comparsionWindowNeedsRefresh)
+			Sleep(500);
 		else
 		{
 			findPicturesInCurrentFolder();
 
 			//compose a path to the current picture
-			wstring pathTojpg = folders[sessionCurrentFolderIndex].name + L"\\" + picturesInCurrentFolder[sessionCurrentPictureIndex];
+			wstring pathTojpg = folders[sessionCurrentFolderIndex].name + L"\\" + picturesInCurrentFolder[sessionCurrentPictureIndex].name;
 			wchar_t* wchart_pathTojpg = const_cast<wchar_t*>(pathTojpg.c_str());//convert wstring to char*
 			char* asciiPathTojpg = new char[wcslen(wchart_pathTojpg) + 1];
 			wcstombs(asciiPathTojpg, wchart_pathTojpg, wcslen(wchart_pathTojpg) + 1);
@@ -1197,6 +1534,19 @@ inline void findFoldersWithPictures()
 /*=================================================================================================================================*/
 void findPicturesInCurrentFolder()
 {
+	//get monitor size
+	const POINT ptZero = { 0, 0 };
+	HMONITOR hmon = MonitorFromPoint(ptZero, MONITOR_DEFAULTTOPRIMARY);
+	MONITORINFO mi = { sizeof(mi) };
+	if (!GetMonitorInfo(hmon, &mi)) 
+		return ;
+	int monitorWidth = mi.rcMonitor.right - mi.rcMonitor.left;
+	int monitorHeight = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+	//free all memory under IplImages in "picturesInCurrentFolder"
+	for (int i = 0; i < picturesInCurrentFolder.size(); i++)
+		cvReleaseImage(&picturesInCurrentFolder[i].image);
+
 	picturesInCurrentFolder.clear();
 	WIN32_FIND_DATA fd;
 	wstring searchPath= folders[sessionCurrentFolderIndex].name + L"\\*.jpg";
@@ -1205,8 +1555,47 @@ void findPicturesInCurrentFolder()
     if(hFind != INVALID_HANDLE_VALUE)
     {
         do{
-			wstring s1(fd.cFileName);
-			picturesInCurrentFolder.push_back(s1);
+			wstring curFileName(fd.cFileName);
+			PictureProps pp = {curFileName, NULL};
+
+
+
+			//compose a path to the current picture
+			wstring pathTojpg = folders[sessionCurrentFolderIndex].name + L"\\" + curFileName;
+			wchar_t* wchart_pathTojpg = const_cast<wchar_t*>(pathTojpg.c_str());//convert wstring to char*
+			char* asciiPathTojpg = new char[wcslen(wchart_pathTojpg) + 1];
+			wcstombs(asciiPathTojpg, wchart_pathTojpg, wcslen(wchart_pathTojpg) + 1);
+			
+			//load from HDD
+			IplImage* imgOriginal = cvLoadImage(asciiPathTojpg, 1);
+			
+			//convert BGR -> RGB
+			char symb;
+			for (int j=0; j<imgOriginal->width * imgOriginal->height * 3; j+=3)
+			{
+				symb = imgOriginal->imageData[j+0];
+				imgOriginal->imageData[j+0] = imgOriginal->imageData[j+2];
+				imgOriginal->imageData[j+2] = symb;
+			}
+
+			//rotate
+			IplImage* imgRotated = rotateImage(imgOriginal);
+
+			//scale to fit a screen
+			int newWidth = 0, newHeight = 0;
+			calculateScaledImageSize(monitorWidth, monitorHeight-(BACK_BUTTON_HEIGHT+5), imgRotated->width, imgRotated->height, &newWidth, &newHeight);
+			IplImage* imgScaled = cvCreateImage(cvSize(newWidth,newHeight), imgRotated->depth, imgRotated->nChannels);
+			cvResize(imgRotated, imgScaled, CV_INTER_LINEAR);
+			
+			//flip
+			cvFlip(imgScaled);
+
+			cvReleaseImage(&imgOriginal);
+			cvReleaseImage(&imgRotated);
+			delete[] asciiPathTojpg;
+
+			pp.image = imgScaled;
+			picturesInCurrentFolder.push_back(pp);
         }while(::FindNextFile(hFind, &fd));
         ::FindClose(hFind);
     }

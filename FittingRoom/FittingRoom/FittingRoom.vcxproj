@@ -79,7 +79,6 @@
   <ItemGroup>
     <ClInclude Include="CamerasController.h" />
     <ClInclude Include="FittingRoom.h" />
-    <ClInclude Include="FolderProperties.h" />
     <ClInclude Include="MyConstants.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SpinigeController.h" />
@@ -89,7 +88,6 @@
   <ItemGroup>
     <ClCompile Include="CamerasController.cpp" />
     <ClCompile Include="FittingRoom.cpp" />
-    <ClCompile Include="FolderProperties.cpp" />
     <ClCompile Include="SpinigeController.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
