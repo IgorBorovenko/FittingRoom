@@ -68,15 +68,20 @@ HDC hDc_Comparsion;
 HWND hWnd_Comparsion;
 TCHAR szWindowClass_Comparsion[MAX_LOADSTRING] = L"szWindowClass_Comparsion"; // the main window class name
 bool comparsionWindowNeedsRefresh = false;
+int comparsionCurreentPictureIndex = -1;
+bool skipFindPicturesInSelectedFolder = false;
 // Comparsion Window funcs
 BOOL CreateWindow_Comparsion(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWindow);
 LRESULT CALLBACK WndProc_Comparsion(HWND, UINT, WPARAM, LPARAM);
 void drawComparsion(void * args);
 void TouchEndHandler_Comparsion();
+int findPicturesInSelectedFolders();
+vector<PictureProps> picsToCompare[4];
 #pragma endregion
 
 // my global variables
 HINSTANCE hInst; // current instance
+bool finishAllThreads = false;
 TCHAR szTitle[MAX_LOADSTRING];	// The title bar text
 int CurrentTouchesCount = 0;
 vector <TOUCHINPUT> CurrentTouches;
@@ -92,6 +97,7 @@ int InitializeOpenGL(HWND _hWnd, int monitorWidth, int monitorHeight);
 wchar_t *convertCharArrayToLPCWSTR(const char* charArray);
 void calculateScaledImageSize(int placeholderW, int placeholderH, int originalW, int originalH, int* newW, int* newH);
 IplImage *rotateImage(IplImage *src);
+void loadPicturesFromFolderIntoVector(int folderIndex, vector<PictureProps> *pics, int placeholderW, int placeholderH);
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
@@ -452,6 +458,7 @@ LRESULT CALLBACK WndProc_Main(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		//	EndPaint(hWnd, &ps);
 		//	break;
 		case WM_DESTROY:
+			finishAllThreads = true;
 			PostQuitMessage(0);
 			break;
 		default:
@@ -535,7 +542,7 @@ LRESULT CALLBACK WndProc_Gallery(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 						else
 						{
 							//show photo session
-							ShowWindow(hWnd_Session, 1);
+							ShowWindow(hWnd_Session, SW_SHOW);
 							UpdateWindow(hWnd_Session);
 							sessionCurrentFolderIndex = folderIndex;
 							sessionCurrentPictureIndex = 0;
@@ -563,9 +570,13 @@ LRESULT CALLBACK WndProc_Gallery(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 					UpdateWindow(hWnd_Main);
 					break;
 				case GALLERY_COMPARE_BUTTON:
-					ShowWindow(hWnd_Gallery, SW_HIDE);
+					//ShowWindow(hWnd_Gallery, SW_HIDE);
+
+					comparsionCurreentPictureIndex = 0;
+					skipFindPicturesInSelectedFolder = false;
 					ShowWindow(hWnd_Comparsion, SW_SHOW);
 					UpdateWindow(hWnd_Comparsion);
+					comparsionWindowNeedsRefresh = true;
 					break;
 				default:
 					return DefWindowProc(hWnd, message, wParam, lParam);
@@ -681,8 +692,9 @@ LRESULT CALLBACK WndProc_Session(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			{
 				case SESSION_BACK_BUTTON:
 				{
-					ShowWindow(hWnd_Session, 0);
-					ShowWindow(hWnd_Gallery, 1);
+					sessionCurrentPictureIndex = -1;
+					ShowWindow(hWnd_Session, SW_HIDE);
+					ShowWindow(hWnd_Gallery, SW_SHOW);
 					UpdateWindow(hWnd_Gallery);
 					break;
 				}
@@ -796,8 +808,9 @@ LRESULT CALLBACK WndProc_Comparsion(HWND hWnd, UINT message, WPARAM wParam, LPAR
 			{
 				case COMPARSION_BACK_BUTTON:
 				{
+					comparsionCurreentPictureIndex = -1;
 					ShowWindow(hWnd_Comparsion, SW_HIDE);
-					ShowWindow(hWnd_Gallery, SW_SHOWNORMAL);
+					ShowWindow(hWnd_Gallery, SW_SHOW);
 					UpdateWindow(hWnd_Gallery);
 					break;
 				}
@@ -982,26 +995,26 @@ void TouchEndHandler_Comparsion()
 		}
 	case TOUCH_MOVEMENT_LEFT:
 		{
-			MessageBox(hWnd_Comparsion, L"left", L"Error", MB_OK);
-			/*
-			sessionCurrentPictureIndex++;
-			if (sessionCurrentPictureIndex == picturesInCurrentFolder.size())
-				sessionCurrentPictureIndex = 0;
+			//MessageBox(hWnd_Comparsion, L"left", L"Error", MB_OK);
+			
+			comparsionCurreentPictureIndex++;
+			if (comparsionCurreentPictureIndex == picsToCompare[0].size())
+				comparsionCurreentPictureIndex = 0;
 
-			sessionWindowNeedsRefresh = true;
-			*/
+			comparsionWindowNeedsRefresh = true;
+			
 			break;
 		}
 	case TOUCH_MOVEMENT_RIGHT:
 		{
-			MessageBox(hWnd_Comparsion, L"left", L"Error", MB_OK);
-			/*
-			sessionCurrentPictureIndex--;
-			if (sessionCurrentPictureIndex == -1)
-				sessionCurrentPictureIndex = picturesInCurrentFolder.size() - 1;
+			//MessageBox(hWnd_Comparsion, L"right", L"Error", MB_OK);
+			
+			comparsionCurreentPictureIndex--;
+			if (comparsionCurreentPictureIndex == -1)
+				comparsionCurreentPictureIndex = picsToCompare[0].size() - 1;
 
-			sessionWindowNeedsRefresh = true;
-			*/
+			comparsionWindowNeedsRefresh = true;
+			
 			break;
 		}
 	case -1:
@@ -1130,7 +1143,7 @@ void drawMain(void * args)
 	char* rotatedBuffer = new char[PICTURE_WIDTH * PICTURE_HEIGHT * 3];
 	char* finalBuffer = new char[PICTURE_WIDTH * PICTURE_HEIGHT * 3];
 	
-	while(true)
+	while(!finishAllThreads)
 	{
 		if (!Cameras.IsShowVideo)
 			Sleep(100);
@@ -1201,7 +1214,7 @@ void drawGallery(void * args)
 		return ;
 	}
 
-	while(1)
+	while(!finishAllThreads)
 	{
 		if (!galleryWindowNeedsRefresh)
 			Sleep(50);
@@ -1318,7 +1331,7 @@ void drawSession(void * args)
 
 	glRasterPos2f(0, 0);
 
-	while(true)
+	while(!finishAllThreads)
 	{
 		if (!sessionWindowNeedsRefresh)
 			Sleep(50);
@@ -1381,7 +1394,7 @@ void drawSession(void * args)
 		}
 	}
 }
-
+/*=================================================================================================================================*/
 void drawComparsion(void * args)
 {
 	//get monitor size
@@ -1393,71 +1406,62 @@ void drawComparsion(void * args)
 	int monitorWidth = mi.rcMonitor.right - mi.rcMonitor.left;
 	int monitorHeight = mi.rcMonitor.bottom - mi.rcMonitor.top;
 
-	if(InitializeOpenGL(hWnd_Session, monitorWidth, monitorHeight-(BACK_BUTTON_HEIGHT+5)) < 1)
+	if(InitializeOpenGL(hWnd_Comparsion, monitorWidth, monitorHeight-(BACK_BUTTON_HEIGHT+5)) < 1)
 	{
 		MessageBox(NULL, L"OpenGL initialization Error", L"Session window", MB_OK);
 		return ;
 	}
 
-	glRasterPos2f(0, 0);
+	int markedFolderCounter = -1;
+	const int columnsNumber = 2;
+	const int rowsNumber = 2;
+	
 
-	while(1)
+	while(!finishAllThreads)
 	{
 		if (!comparsionWindowNeedsRefresh)
-			Sleep(500);
+			Sleep(50);
 		else
 		{
-			findPicturesInCurrentFolder();
+			//clear the screen
+			openGlDrawRect(0,0, monitorWidth, (monitorHeight-(BACK_BUTTON_HEIGHT+5)), 0x000000ff);
 
-			//compose a path to the current picture
-			wstring pathTojpg = folders[sessionCurrentFolderIndex].name + L"\\" + picturesInCurrentFolder[sessionCurrentPictureIndex].name;
-			wchar_t* wchart_pathTojpg = const_cast<wchar_t*>(pathTojpg.c_str());//convert wstring to char*
-			char* asciiPathTojpg = new char[wcslen(wchart_pathTojpg) + 1];
-			wcstombs(asciiPathTojpg, wchart_pathTojpg, wcslen(wchart_pathTojpg) + 1);
-			
-			//load from HDD
-			IplImage* imgOriginal = cvLoadImage(asciiPathTojpg, 1);
-			
-			//convert BGR -> RGB
-			char symb;
-			for (int j=0; j<imgOriginal->width * imgOriginal->height * 3; j+=3)
+			if (!skipFindPicturesInSelectedFolder)
 			{
-				symb = imgOriginal->imageData[j+0];
-				imgOriginal->imageData[j+0] = imgOriginal->imageData[j+2];
-				imgOriginal->imageData[j+2] = symb;
+				markedFolderCounter = findPicturesInSelectedFolders();
+				skipFindPicturesInSelectedFolder = true;
 			}
 
-			//rotate
-			IplImage* imgRotated = rotateImage(imgOriginal);
+			int col = 0, row = 0;
+			for (int i = 0; i < markedFolderCounter; i++)
+			{
+				IplImage *imgScaled = picsToCompare[i][comparsionCurreentPictureIndex].image;
 
-			//scale to fit a screen
-			int newWidth = 0, newHeight = 0;
-			calculateScaledImageSize(monitorWidth, monitorHeight-(BACK_BUTTON_HEIGHT+5), imgRotated->width, imgRotated->height, &newWidth, &newHeight);
-			IplImage* imgScaled = cvCreateImage(cvSize(newWidth,newHeight), imgRotated->depth, imgRotated->nChannels);
-			cvResize(imgRotated, imgScaled, CV_INTER_LINEAR);
-			
-			//flip
-			cvFlip(imgScaled);
-			
-			//draw
-			glDrawPixels(imgScaled->width, imgScaled->height, GL_RGB, GL_UNSIGNED_BYTE, imgScaled->imageData);
+				//calculate coordinates
+				int curPictureX = imgScaled->width*col;
+				int curPictureY = monitorHeight - (BACK_BUTTON_HEIGHT+5) - imgScaled->height*(row+1);
 
-			SwapBuffers(hDc_Session);
+				glRasterPos2f(curPictureX, curPictureY);
+				//draw
+				glDrawPixels(imgScaled->width, imgScaled->height, GL_RGB, GL_UNSIGNED_BYTE, imgScaled->imageData);
 
-			//free the used memory
-			cvReleaseImage(&imgOriginal);
-			cvReleaseImage(&imgRotated);
-			cvReleaseImage(&imgScaled);
-			delete[] asciiPathTojpg;
-			//Sleep(30);
+				col++;
+				if (col>columnsNumber-1)
+				{
+					col = 0;
+					row++;
+				}
+			}
 			
+			SwapBuffers(hDc_Comparsion);
+
 			//InvalidateRect(hWnd_Session, NULL, false);
-			sessionWindowNeedsRefresh = false;
+			comparsionWindowNeedsRefresh = false;
 		}
 	}
 }
 /*=================================================================================================================================*/
-inline void findFoldersWithPictures()
+void findFoldersWithPictures()
 {
 	//hide "compare" button
 	ShowWindow(hWndGalleryCompareButton, SW_HIDE);
@@ -1532,6 +1536,75 @@ inline void findFoldersWithPictures()
     }
 }
 /*=================================================================================================================================*/
+//void findPicturesInCurrentFolder()
+//{
+//	//get monitor size
+//	const POINT ptZero = { 0, 0 };
+//	HMONITOR hmon = MonitorFromPoint(ptZero, MONITOR_DEFAULTTOPRIMARY);
+//	MONITORINFO mi = { sizeof(mi) };
+//	if (!GetMonitorInfo(hmon, &mi)) 
+//		return ;
+//	int monitorWidth = mi.rcMonitor.right - mi.rcMonitor.left;
+//	int monitorHeight = mi.rcMonitor.bottom - mi.rcMonitor.top;
+//
+//	//free all memory under IplImages in "picturesInCurrentFolder"
+//	for (int i = 0; i < picturesInCurrentFolder.size(); i++)
+//		cvReleaseImage(&picturesInCurrentFolder[i].image);
+//
+//	picturesInCurrentFolder.clear();
+//	WIN32_FIND_DATA fd;
+//	wstring searchPath= folders[sessionCurrentFolderIndex].name + L"\\*.jpg";
+//	
+//	HANDLE hFind=::FindFirstFile(searchPath.c_str(), &fd);
+//    if(hFind != INVALID_HANDLE_VALUE)
+//    {
+//        do{
+//			wstring curFileName(fd.cFileName);
+//			PictureProps pp = {curFileName, NULL};
+//
+//
+//
+//			//compose a path to the current picture
+//			wstring pathTojpg = folders[sessionCurrentFolderIndex].name + L"\\" + curFileName;
+//			wchar_t* wchart_pathTojpg = const_cast<wchar_t*>(pathTojpg.c_str());//convert wstring to char*
+//			char* asciiPathTojpg = new char[wcslen(wchart_pathTojpg) + 1];
+//			wcstombs(asciiPathTojpg, wchart_pathTojpg, wcslen(wchart_pathTojpg) + 1);
+//			
+//			//load from HDD
+//			IplImage* imgOriginal = cvLoadImage(asciiPathTojpg, 1);
+//			
+//			//convert BGR -> RGB
+//			char symb;
+//			for (int j=0; j<imgOriginal->width * imgOriginal->height * 3; j+=3)
+//			{
+//				symb = imgOriginal->imageData[j+0];
+//				imgOriginal->imageData[j+0] = imgOriginal->imageData[j+2];
+//				imgOriginal->imageData[j+2] = symb;
+//			}
+//
+//			//rotate
+//			IplImage* imgRotated = rotateImage(imgOriginal);
+//
+//			//scale to fit a screen
+//			int newWidth = 0, newHeight = 0;
+//			calculateScaledImageSize(monitorWidth, monitorHeight-(BACK_BUTTON_HEIGHT+5), imgRotated->width, imgRotated->height, &newWidth, &newHeight);
+//			IplImage* imgScaled = cvCreateImage(cvSize(newWidth,newHeight), imgRotated->depth, imgRotated->nChannels);
+//			cvResize(imgRotated, imgScaled, CV_INTER_LINEAR);
+//			
+//			//flip
+//			cvFlip(imgScaled);
+//
+//			cvReleaseImage(&imgOriginal);
+//			cvReleaseImage(&imgRotated);
+//			delete[] asciiPathTojpg;
+//
+//			pp.image = imgScaled;
+//			picturesInCurrentFolder.push_back(pp);
+//        }while(::FindNextFile(hFind, &fd));
+//        ::FindClose(hFind);
+//    }
+//}
+
 void findPicturesInCurrentFolder()
 {
 	//get monitor size
@@ -1548,8 +1621,13 @@ void findPicturesInCurrentFolder()
 		cvReleaseImage(&picturesInCurrentFolder[i].image);
 
 	picturesInCurrentFolder.clear();
+	loadPicturesFromFolderIntoVector(sessionCurrentFolderIndex, &picturesInCurrentFolder, monitorWidth, monitorHeight-(BACK_BUTTON_HEIGHT+5));
+}
+/*=================================================================================================================================*/
+void loadPicturesFromFolderIntoVector(int folderIndex, vector<PictureProps> *pics, int placeholderW, int placeholderH)
+{
 	WIN32_FIND_DATA fd;
-	wstring searchPath= folders[sessionCurrentFolderIndex].name + L"\\*.jpg";
+	wstring searchPath= folders[folderIndex].name + L"\\*.jpg";
 	
 	HANDLE hFind=::FindFirstFile(searchPath.c_str(), &fd);
     if(hFind != INVALID_HANDLE_VALUE)
@@ -1558,10 +1636,8 @@ void findPicturesInCurrentFolder()
 			wstring curFileName(fd.cFileName);
 			PictureProps pp = {curFileName, NULL};
 
-
-
 			//compose a path to the current picture
-			wstring pathTojpg = folders[sessionCurrentFolderIndex].name + L"\\" + curFileName;
+			wstring pathTojpg = folders[folderIndex].name + L"\\" + curFileName;
 			wchar_t* wchart_pathTojpg = const_cast<wchar_t*>(pathTojpg.c_str());//convert wstring to char*
 			char* asciiPathTojpg = new char[wcslen(wchart_pathTojpg) + 1];
 			wcstombs(asciiPathTojpg, wchart_pathTojpg, wcslen(wchart_pathTojpg) + 1);
@@ -1580,25 +1656,68 @@ void findPicturesInCurrentFolder()
 
 			//rotate
 			IplImage* imgRotated = rotateImage(imgOriginal);
-
-			//scale to fit a screen
-			int newWidth = 0, newHeight = 0;
-			calculateScaledImageSize(monitorWidth, monitorHeight-(BACK_BUTTON_HEIGHT+5), imgRotated->width, imgRotated->height, &newWidth, &newHeight);
-			IplImage* imgScaled = cvCreateImage(cvSize(newWidth,newHeight), imgRotated->depth, imgRotated->nChannels);
-			cvResize(imgRotated, imgScaled, CV_INTER_LINEAR);
 			
-			//flip
-			cvFlip(imgScaled);
+			if (placeholderW != 0 && placeholderH != 0) // if "= 0" - no need to scale
+			{
+				//scale to fit a screen
+				int newWidth = 0, newHeight = 0;
+				calculateScaledImageSize(placeholderW, placeholderH, imgRotated->width, imgRotated->height, &newWidth, &newHeight);
+				IplImage* imgScaled = cvCreateImage(cvSize(newWidth,newHeight), imgRotated->depth, imgRotated->nChannels);
+				cvResize(imgRotated, imgScaled, CV_INTER_LINEAR);
+			
+				//flip
+				cvFlip(imgScaled);
+
+				cvReleaseImage(&imgRotated);
+
+				pp.image = imgScaled;
+			}
+			else
+			{
+				//flip
+				cvFlip(imgRotated);
+
+				pp.image = imgRotated;
+			}
 
 			cvReleaseImage(&imgOriginal);
-			cvReleaseImage(&imgRotated);
 			delete[] asciiPathTojpg;
-
-			pp.image = imgScaled;
-			picturesInCurrentFolder.push_back(pp);
+			pics->push_back(pp);
         }while(::FindNextFile(hFind, &fd));
         ::FindClose(hFind);
     }
+}
+/*=================================================================================================================================*/
+int findPicturesInSelectedFolders()
+{
+	//get monitor size
+	const POINT ptZero = { 0, 0 };
+	HMONITOR hmon = MonitorFromPoint(ptZero, MONITOR_DEFAULTTOPRIMARY);
+	MONITORINFO mi = { sizeof(mi) };
+	if (!GetMonitorInfo(hmon, &mi)) 
+		return -1;
+	int monitorWidth = mi.rcMonitor.right - mi.rcMonitor.left;
+	int monitorHeight = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+	//free all memory under IplImages in "picsToCompare"
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = picsToCompare[i].size() - 1; j >= 0 ; j--)
+		{
+			cvReleaseImage(&(picsToCompare[i][j].image));
+			picsToCompare[i].erase(picsToCompare[i].begin() + j);
+		}
+	}
+	
+	int markedFolderCounter = 0;
+	for (int i = 0; i < folders.size(); i++)
+		if (folders[i].marked == true)
+		{
+			loadPicturesFromFolderIntoVector(i, &picsToCompare[markedFolderCounter], monitorWidth / 2, (monitorHeight-(BACK_BUTTON_HEIGHT+5)) / 2);
+			markedFolderCounter++;
+		}
+
+	return markedFolderCounter;
 }
 /*=================================================================================================================================*/
 wchar_t *convertCharArrayToLPCWSTR(const char* charArray)
@@ -1651,7 +1770,7 @@ void takeSnapshots(void * args)
 
 	showCountdownWarning = false;
 }
-
+/*=================================================================================================================================*/
 void openGlDrawText(GLfloat x, GLfloat y, char* text, float size)
 {
     glPushMatrix();
@@ -1666,7 +1785,7 @@ void openGlDrawText(GLfloat x, GLfloat y, char* text, float size)
     }
     glPopMatrix();
 }
-
+/*=================================================================================================================================*/
 void openGlDrawRect(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, unsigned int rgba)
 {
     glPushMatrix();
@@ -1680,7 +1799,7 @@ void openGlDrawRect(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, unsigned int
 
     glPopMatrix();
 }
-
+/*=================================================================================================================================*/
 // Rotate the image clockwise (or counter-clockwise if negative).
 // Remember to free the returned image.
 IplImage *rotateImage(IplImage *src)
