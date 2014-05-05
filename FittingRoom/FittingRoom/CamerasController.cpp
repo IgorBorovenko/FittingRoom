@@ -11,11 +11,12 @@ wchar_t *CamerasController::convertCharArrayToLPCWSTR(const char* charArray)
 /*=================================================================================================================================*/
 CamerasController::CamerasController(void)
 {
-	flagCameraStopped = false;
+	fps = 20;
 	CameraBuffer = new char[PICTURE_SIZE];
 	IsShowVideo = false;
 	CurrentCamera = NULL;
 	memset(CameraBuffer, 255, PICTURE_SIZE);
+	cameraStopped = CreateEvent(NULL, true, false, L"cameraStopped");
 }
 /*=================================================================================================================================*/
 CamerasController::~CamerasController(void)
@@ -58,7 +59,7 @@ int CamerasController::InitializeCameras()
 		for(int i = 0; i < CAMERAS_COUNT; i++)
 		{
 			//Cameras[i].IsActive = getFotosFromOneCam(NULL, PICTURE_WIDTH, PICTURE_HEIGHT, Cameras[i].SystemIndex, false, 2, &temp, &temp, false) == 1;
-			Cameras[i].IsActive = getFotosFromOneCam(NULL, PICTURE_WIDTH, PICTURE_HEIGHT, Cameras[i].SystemIndex, &temp, &temp, false, true) == 1;
+			Cameras[i].IsActive = getFotosFromOneCam(NULL, PICTURE_WIDTH, PICTURE_HEIGHT, Cameras[i].SystemIndex, &temp, &temp, false, true, fps) == 1;
 			if(Cameras[i].IsActive && CurrentCamera == NULL)
 			{
 				CurrentCamera = &Cameras[i];
@@ -102,42 +103,39 @@ void CamerasController::BeginShowThreadEntry4(void * args)
 /*=================================================================================================================================*/
 void CamerasController::BeginShowThreadBody()
 {
-	flagCameraStopped = false;
 	bool flagInit = false;
-	getFotosFromOneCam(CameraBuffer, PICTURE_WIDTH, PICTURE_HEIGHT, CurrentCamera->SystemIndex, &flagInit, &IsShowVideo, true, false);
-	flagCameraStopped = true;
+	getFotosFromOneCam(CameraBuffer, PICTURE_WIDTH, PICTURE_HEIGHT, CurrentCamera->SystemIndex, &flagInit, &IsShowVideo, true, false, fps);
+	SetEvent(cameraStopped);
 }
 
 void CamerasController::BeginShowThreadBody1()
 {
 	bool flagInit = true;
-	getFotosFromOneCam(CameraBuffer, PICTURE_WIDTH, PICTURE_HEIGHT, 1, &flagInit, &flagInit, true, false);
+	getFotosFromOneCam(CameraBuffer, PICTURE_WIDTH, PICTURE_HEIGHT, 1, &flagInit, &flagInit, true, false, fps);
+	//getFotosFromOneCam(CameraBuffer, PICTURE_WIDTH, PICTURE_HEIGHT, 1, &flagInit, &flagInit, true, false);
 }
-
 void CamerasController::BeginShowThreadBody2()
 {
 	bool flagInit = true;
-	getFotosFromOneCam(CameraBuffer, PICTURE_WIDTH, PICTURE_HEIGHT, 2, &flagInit, &flagInit, true, false);
+	getFotosFromOneCam(CameraBuffer, PICTURE_WIDTH, PICTURE_HEIGHT, 2, &flagInit, &flagInit, true, false, fps);
+	//getFotosFromOneCam(CameraBuffer, PICTURE_WIDTH, PICTURE_HEIGHT, 2, &flagInit, &flagInit, true, false);
 }
-
 void CamerasController::BeginShowThreadBody3()
 {
 	bool flagInit = true;
-	getFotosFromOneCam(CameraBuffer, PICTURE_WIDTH, PICTURE_HEIGHT, 3, &flagInit, &flagInit, true, false);
+	//getFotosFromOneCam(CameraBuffer, PICTURE_WIDTH, PICTURE_HEIGHT, 3, &flagInit, &flagInit, true, false);
 }
-
 void CamerasController::BeginShowThreadBody4()
 {
 	bool flagInit = true;
-	getFotosFromOneCam(CameraBuffer, PICTURE_WIDTH, PICTURE_HEIGHT, 4, &flagInit, &flagInit, true, false);
+	//getFotosFromOneCam(CameraBuffer, PICTURE_WIDTH, PICTURE_HEIGHT, 4, &flagInit, &flagInit, true, false);
 }
-
-
-
 /*=================================================================================================================================*/
 void CamerasController::EndShow()
 {
+	ResetEvent(cameraStopped);
 	IsShowVideo = false;
+	WaitForSingleObject(cameraStopped, INFINITE);
 }
 /*=================================================================================================================================*/
 void CamerasController::SetNextLeftCamera()
@@ -167,8 +165,8 @@ void CamerasController::SetNextLeftCamera()
 		CurrentCamera = &Cameras[nextLeftIndex];
 		EndShow();
 
-		while(!flagCameraStopped)
-			Sleep(20);
+		//while(!flagCameraStopped)
+		//	Sleep(20);
 
 		BeginShow();
 	}
@@ -201,8 +199,8 @@ void CamerasController::SetNextRightCamera()
 		CurrentCamera = &Cameras[nextRightIndex];
 		EndShow();
 		
-		while(!flagCameraStopped)
-			Sleep(20);
+		/*while(!flagCameraStopped)
+			Sleep(20);*/
 
 		BeginShow();
 	}
@@ -238,7 +236,7 @@ void CamerasController::savePicturesFromActiveCamerasToDisc()
 
 		if (Cameras[i].IsActive)
 		{
-			int result = getFotosFromOneCam(curCameraBuffer, PICTURE_WIDTH, PICTURE_HEIGHT, Cameras[i].SystemIndex, &flagInit, &flagStop, true, true);
+			int result = getFotosFromOneCam(curCameraBuffer, PICTURE_WIDTH, PICTURE_HEIGHT, Cameras[i].SystemIndex, &flagInit, &flagStop, true, true, fps);
 			if (result == 1)
 			{
 				//success
@@ -258,15 +256,6 @@ void CamerasController::savePicturesFromActiveCamerasToDisc()
 					curCameraBuffer[j+0] = curCameraBuffer[j+2];
 					curCameraBuffer[j+2] = symb;
 				}
-
-				/*wstring filename(L".jpg");
-				char buf;
-				itoa(i,&buf,10);
-				wchar_t *buf2 = cconvertCharArrayToLPCWSTR(&buf);
-				filename = *buf2 + filename;
-				wchar_t* wchart_filename = const_cast<wchar_t*>(filename.c_str());
-				char* ascii_filename = new char[wcslen(wchart_filename) + 1];
-				wcstombs(ascii_filename, wchart_filename, wcslen(wchart_filename) + 1);*/
 
 				//form a name for the file to which we're going to save a picture
 				char filename[10];
@@ -297,9 +286,4 @@ void CamerasController::savePicturesFromActiveCamerasToDisc()
 		}
 	}
 	delete[] curCameraBuffer;
-	/*delete[] filename;
-	delete[] extension;
-	delete[] foldername;
-	delete[] fullPath;*/
 }
-

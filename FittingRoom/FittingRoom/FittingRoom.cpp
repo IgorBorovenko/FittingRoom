@@ -1536,75 +1536,6 @@ void findFoldersWithPictures()
     }
 }
 /*=================================================================================================================================*/
-//void findPicturesInCurrentFolder()
-//{
-//	//get monitor size
-//	const POINT ptZero = { 0, 0 };
-//	HMONITOR hmon = MonitorFromPoint(ptZero, MONITOR_DEFAULTTOPRIMARY);
-//	MONITORINFO mi = { sizeof(mi) };
-//	if (!GetMonitorInfo(hmon, &mi)) 
-//		return ;
-//	int monitorWidth = mi.rcMonitor.right - mi.rcMonitor.left;
-//	int monitorHeight = mi.rcMonitor.bottom - mi.rcMonitor.top;
-//
-//	//free all memory under IplImages in "picturesInCurrentFolder"
-//	for (int i = 0; i < picturesInCurrentFolder.size(); i++)
-//		cvReleaseImage(&picturesInCurrentFolder[i].image);
-//
-//	picturesInCurrentFolder.clear();
-//	WIN32_FIND_DATA fd;
-//	wstring searchPath= folders[sessionCurrentFolderIndex].name + L"\\*.jpg";
-//	
-//	HANDLE hFind=::FindFirstFile(searchPath.c_str(), &fd);
-//    if(hFind != INVALID_HANDLE_VALUE)
-//    {
-//        do{
-//			wstring curFileName(fd.cFileName);
-//			PictureProps pp = {curFileName, NULL};
-//
-//
-//
-//			//compose a path to the current picture
-//			wstring pathTojpg = folders[sessionCurrentFolderIndex].name + L"\\" + curFileName;
-//			wchar_t* wchart_pathTojpg = const_cast<wchar_t*>(pathTojpg.c_str());//convert wstring to char*
-//			char* asciiPathTojpg = new char[wcslen(wchart_pathTojpg) + 1];
-//			wcstombs(asciiPathTojpg, wchart_pathTojpg, wcslen(wchart_pathTojpg) + 1);
-//			
-//			//load from HDD
-//			IplImage* imgOriginal = cvLoadImage(asciiPathTojpg, 1);
-//			
-//			//convert BGR -> RGB
-//			char symb;
-//			for (int j=0; j<imgOriginal->width * imgOriginal->height * 3; j+=3)
-//			{
-//				symb = imgOriginal->imageData[j+0];
-//				imgOriginal->imageData[j+0] = imgOriginal->imageData[j+2];
-//				imgOriginal->imageData[j+2] = symb;
-//			}
-//
-//			//rotate
-//			IplImage* imgRotated = rotateImage(imgOriginal);
-//
-//			//scale to fit a screen
-//			int newWidth = 0, newHeight = 0;
-//			calculateScaledImageSize(monitorWidth, monitorHeight-(BACK_BUTTON_HEIGHT+5), imgRotated->width, imgRotated->height, &newWidth, &newHeight);
-//			IplImage* imgScaled = cvCreateImage(cvSize(newWidth,newHeight), imgRotated->depth, imgRotated->nChannels);
-//			cvResize(imgRotated, imgScaled, CV_INTER_LINEAR);
-//			
-//			//flip
-//			cvFlip(imgScaled);
-//
-//			cvReleaseImage(&imgOriginal);
-//			cvReleaseImage(&imgRotated);
-//			delete[] asciiPathTojpg;
-//
-//			pp.image = imgScaled;
-//			picturesInCurrentFolder.push_back(pp);
-//        }while(::FindNextFile(hFind, &fd));
-//        ::FindClose(hFind);
-//    }
-//}
-
 void findPicturesInCurrentFolder()
 {
 	//get monitor size
@@ -1760,7 +1691,7 @@ void takeSnapshots(void * args)
 	if (showCountdownWarning)
 	{
 		Cameras.EndShow();
-		Sleep(100);
+		//Sleep(1000);
 		Cameras.savePicturesFromActiveCamerasToDisc();
 		Cameras.BeginShow();
 

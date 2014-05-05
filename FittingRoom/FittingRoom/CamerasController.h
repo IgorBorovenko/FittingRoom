@@ -29,7 +29,8 @@ class CamerasController
 		
 		Camera * CurrentCamera;
 		Camera Cameras[CAMERAS_COUNT];
-		bool flagCameraStopped;
+		int fps;
+		HANDLE cameraStopped;
 		// methods
 		bool ReadConfig();
 		// get video from current camera
@@ -45,11 +46,12 @@ class CamerasController
 		void BeginShowThreadBody3();
 		void BeginShowThreadBody4();
 		wchar_t *CamerasController::convertCharArrayToLPCWSTR(const char* charArray);
-
+		void changeFlagInit();
 	public:
 		// variables
 		char *CameraBuffer;
 		bool IsShowVideo;
+		
 		// methods
 		CamerasController(void);
 		~CamerasController(void);
@@ -67,4 +69,5 @@ class CamerasController
 		// set next right camera
 		void SetNextRightCamera();
 		void CamerasController::savePicturesFromActiveCamerasToDisc();
+		static void smFnc(void * args);
 };
