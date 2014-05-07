@@ -5,6 +5,7 @@
 #include "resource.h"
 #include "MyConstants.h"
 #include "CamerasController.h"
+#include "Camera.h"
 // OpenGL
 #include "GL.h"
 #pragma comment(lib, "OPENGL32.lib")

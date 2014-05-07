@@ -13,45 +13,28 @@
 #pragma comment(lib, "opencv_core241d.lib")
 #pragma comment(lib, "opencv_highgui241d.lib")
 #pragma comment(lib, "opencv_imgproc241d.lib")
-
 using namespace std;
+
+#include "Camera.h"
 
 class CamerasController
 {
 	private:  
-		struct Camera
-		{
-			int Index;
-			int SystemIndex;
-			bool IsActive;
-		};
 		// variables
-		
-		Camera * CurrentCamera;
-		Camera Cameras[CAMERAS_COUNT];
-		int fps;
-		HANDLE cameraStopped;
+
 		// methods
 		bool ReadConfig();
-		// get video from current camera
-		static void BeginShowThreadEntry(void * args);
-		static void BeginShowThreadEntry1(void * args);
-		static void BeginShowThreadEntry2(void * args);
-		static void BeginShowThreadEntry3(void * args);
-		static void BeginShowThreadEntry4(void * args);
-
-		void BeginShowThreadBody();
-		void BeginShowThreadBody1();
-		void BeginShowThreadBody2();
-		void BeginShowThreadBody3();
-		void BeginShowThreadBody4();
-		wchar_t *CamerasController::convertCharArrayToLPCWSTR(const char* charArray);
-		void changeFlagInit();
+		wchar_t *convertCharArrayToLPCWSTR(const char* charArray);
+		int getNextLeftCameraIndex(int cameraIndex);
+		int getNextRightCameraIndex(int cameraIndex);
 	public:
 		// variables
-		char *CameraBuffer;
-		bool IsShowVideo;
-		
+		Camera *LeftCamera;
+		Camera *CurrentCamera;
+		Camera *RightCamera;
+		Camera Cameras[CAMERAS_COUNT];
+		bool allCamerasWorking;
+
 		// methods
 		CamerasController(void);
 		~CamerasController(void);
@@ -60,14 +43,11 @@ class CamerasController
 		// -1 - no active cameras
 		// -2 - error occured during read config
 		int InitializeCameras();
-		// Begin show video from current camera
-		void BeginShow();
-		// End show video
-		void EndShow();
 		// set next left camera
 		void SetNextLeftCamera();
 		// set next right camera
 		void SetNextRightCamera();
-		void CamerasController::savePicturesFromActiveCamerasToDisc();
-		static void smFnc(void * args);
+		void savePicturesFromActiveCamerasToDisc();
+		void StartAllCameras();
+		void StopAllCameras();
 };

@@ -3,7 +3,6 @@
 #include "FittingRoom.h"
 #include "SpinigeController.h"
 #include "glut.h"
-#include "glut.h"
 #pragma endregion
 
 #pragma region Main Window 
@@ -129,7 +128,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	}
 	else
 	{
-		Cameras.BeginShow();
+		Cameras.StartAllCameras();
 		_beginthread(drawMain, 0, NULL);
 	}
 
@@ -459,6 +458,7 @@ LRESULT CALLBACK WndProc_Main(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		//	break;
 		case WM_DESTROY:
 			finishAllThreads = true;
+			Cameras.StopAllCameras();
 			PostQuitMessage(0);
 			break;
 		default:
@@ -564,7 +564,7 @@ LRESULT CALLBACK WndProc_Gallery(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			switch (wmId)
 			{
 				case GALLERY_BACK_BUTTON:
-					Cameras.BeginShow();
+					Cameras.StartAllCameras();
 					ShowWindow(hWnd_Gallery, 0);
 					ShowWindow(hWnd_Main, 1);
 					UpdateWindow(hWnd_Main);
@@ -890,7 +890,6 @@ void TouchEndHandler_Main()
 {	
 	int direction = GetTouchesResult();
 	
-	
 	if (!showCountdownWarning)
 	{
 		//if countdown and taking pictures process IS NOT active while registered new touches - handle touches as usually
@@ -903,7 +902,7 @@ void TouchEndHandler_Main()
 				break;
 			}
 			case TOUCH_MOVEMENT_DOWN:
-				Cameras.EndShow();
+				Cameras.StopAllCameras();
 				ShowWindow(hWnd_Main, 0);
 				ShowWindow(hWnd_Gallery, 1);
 				UpdateWindow(hWnd_Gallery);
@@ -1145,21 +1144,22 @@ void drawMain(void * args)
 	
 	while(!finishAllThreads)
 	{
-		if (!Cameras.IsShowVideo)
+		if (!Cameras.allCamerasWorking)
 			Sleep(100);
 		else
 		{
 			//original picture
 			//glDrawPixels(PICTURE_WIDTH, PICTURE_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, Cameras.CameraBuffer);
+			Camera *currentCamera = Cameras.CurrentCamera;
 			
 			//customRotate(Cameras.CameraBuffer, rotatedBuffer);
 			for (int row = 0; row < PICTURE_HEIGHT; row++)
 			{
 				for (int col = 0; col < PICTURE_WIDTH; col++)
 				{
-					rotatedBuffer[(col*PICTURE_HEIGHT + (PICTURE_HEIGHT - row))*3 + 0] = Cameras.CameraBuffer[(row*PICTURE_WIDTH + col)*3 + 0];
-					rotatedBuffer[(col*PICTURE_HEIGHT + (PICTURE_HEIGHT - row))*3 + 1] = Cameras.CameraBuffer[(row*PICTURE_WIDTH + col)*3 + 1];
-					rotatedBuffer[(col*PICTURE_HEIGHT + (PICTURE_HEIGHT - row))*3 + 2] = Cameras.CameraBuffer[(row*PICTURE_WIDTH + col)*3 + 2];
+					rotatedBuffer[(col*PICTURE_HEIGHT + (PICTURE_HEIGHT - row))*3 + 0] = currentCamera->buffer[(row*PICTURE_WIDTH + col)*3 + 0];
+					rotatedBuffer[(col*PICTURE_HEIGHT + (PICTURE_HEIGHT - row))*3 + 1] = currentCamera->buffer[(row*PICTURE_WIDTH + col)*3 + 1];
+					rotatedBuffer[(col*PICTURE_HEIGHT + (PICTURE_HEIGHT - row))*3 + 2] = currentCamera->buffer[(row*PICTURE_WIDTH + col)*3 + 2];
 				}
 			}
 
@@ -1690,10 +1690,9 @@ void takeSnapshots(void * args)
 
 	if (showCountdownWarning)
 	{
-		Cameras.EndShow();
-		//Sleep(1000);
+		Cameras.StopAllCameras();
 		Cameras.savePicturesFromActiveCamerasToDisc();
-		Cameras.BeginShow();
+		Cameras.StartAllCameras();
 
 		snapshotWarningStatus = -1;
 		Sleep(2000);
@@ -1763,4 +1762,3 @@ IplImage *rotateImage(IplImage *src)
 
 	return imageRotated;
 }
-

@@ -1,64 +1,67 @@
-﻿Build started 30.04.2014 13:18:53.
+﻿Build started 07.05.2014 15:53:58.
      1>Project "C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\FittingRoom\FittingRoom.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Release\FittingRoom.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
          All outputs are up-to-date.
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Release\FittingRoom.pch" /Fo"Release\\" /Fd"Release\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt CamerasController.cpp FittingRoom.cpp SpinigeController.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Release\FittingRoom.pch" /Fo"Release\\" /Fd"Release\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt Camera.cpp CamerasController.cpp FittingRoom.cpp SpinigeController.cpp
+         Camera.cpp
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\opencv2\flann\logger.h(66): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
          CamerasController.cpp
      1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\opencv2\flann\logger.h(66): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
-     1>CamerasController.cpp(227): warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>CamerasController.cpp(198): warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\time.inl(112) : see declaration of 'localtime'
-     1>CamerasController.cpp(270): warning C4996: 'itoa': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _itoa. See online help for details.
+     1>CamerasController.cpp(230): warning C4996: 'itoa': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _itoa. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(867) : see declaration of 'itoa'
-     1>CamerasController.cpp(271): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>CamerasController.cpp(231): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
-     1>CamerasController.cpp(275): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>CamerasController.cpp(235): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
-     1>CamerasController.cpp(276): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>CamerasController.cpp(236): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
-     1>CamerasController.cpp(277): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>CamerasController.cpp(237): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(110) : see declaration of 'strcat'
          FittingRoom.cpp
      1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\opencv2\flann\logger.h(66): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+     1>FittingRoom.cpp(174): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
      1>FittingRoom.cpp(175): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
      1>FittingRoom.cpp(176): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
      1>FittingRoom.cpp(177): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
-     1>FittingRoom.cpp(178): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
-     1>FittingRoom.cpp(390): warning C4101: 'ps' : unreferenced local variable
-     1>FittingRoom.cpp(391): warning C4101: 'hdc' : unreferenced local variable
-     1>FittingRoom.cpp(508): warning C4018: '<' : signed/unsigned mismatch
-     1>FittingRoom.cpp(521): warning C4018: '<' : signed/unsigned mismatch
-     1>FittingRoom.cpp(534): warning C4018: '<' : signed/unsigned mismatch
-     1>FittingRoom.cpp(476): warning C4101: 'ps' : unreferenced local variable
-     1>FittingRoom.cpp(473): warning C4101: 'ptClientUL' : unreferenced local variable
-     1>FittingRoom.cpp(472): warning C4101: 'rcClient' : unreferenced local variable
-     1>FittingRoom.cpp(474): warning C4101: 'ptClientLR' : unreferenced local variable
-     1>FittingRoom.cpp(477): warning C4101: 'dwThreadId' : unreferenced local variable
-     1>FittingRoom.cpp(661): warning C4018: '<' : signed/unsigned mismatch
-     1>FittingRoom.cpp(613): warning C4101: 'ps' : unreferenced local variable
-     1>FittingRoom.cpp(610): warning C4101: 'ptClientUL' : unreferenced local variable
-     1>FittingRoom.cpp(609): warning C4101: 'rcClient' : unreferenced local variable
-     1>FittingRoom.cpp(611): warning C4101: 'ptClientLR' : unreferenced local variable
-     1>FittingRoom.cpp(615): warning C4101: 'dwThreadId' : unreferenced local variable
-     1>FittingRoom.cpp(777): warning C4018: '<' : signed/unsigned mismatch
-     1>FittingRoom.cpp(733): warning C4101: 'ps' : unreferenced local variable
-     1>FittingRoom.cpp(730): warning C4101: 'ptClientUL' : unreferenced local variable
-     1>FittingRoom.cpp(729): warning C4101: 'rcClient' : unreferenced local variable
-     1>FittingRoom.cpp(731): warning C4101: 'ptClientLR' : unreferenced local variable
-     1>FittingRoom.cpp(735): warning C4101: 'dwThreadId' : unreferenced local variable
-     1>FittingRoom.cpp(1181): warning C4996: 'itoa': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _itoa. See online help for details.
+     1>FittingRoom.cpp(389): warning C4101: 'ps' : unreferenced local variable
+     1>FittingRoom.cpp(390): warning C4101: 'hdc' : unreferenced local variable
+     1>FittingRoom.cpp(507): warning C4018: '<' : signed/unsigned mismatch
+     1>FittingRoom.cpp(520): warning C4018: '<' : signed/unsigned mismatch
+     1>FittingRoom.cpp(533): warning C4018: '<' : signed/unsigned mismatch
+     1>FittingRoom.cpp(475): warning C4101: 'ps' : unreferenced local variable
+     1>FittingRoom.cpp(472): warning C4101: 'ptClientUL' : unreferenced local variable
+     1>FittingRoom.cpp(471): warning C4101: 'rcClient' : unreferenced local variable
+     1>FittingRoom.cpp(473): warning C4101: 'ptClientLR' : unreferenced local variable
+     1>FittingRoom.cpp(476): warning C4101: 'dwThreadId' : unreferenced local variable
+     1>FittingRoom.cpp(660): warning C4018: '<' : signed/unsigned mismatch
+     1>FittingRoom.cpp(612): warning C4101: 'ps' : unreferenced local variable
+     1>FittingRoom.cpp(609): warning C4101: 'ptClientUL' : unreferenced local variable
+     1>FittingRoom.cpp(608): warning C4101: 'rcClient' : unreferenced local variable
+     1>FittingRoom.cpp(610): warning C4101: 'ptClientLR' : unreferenced local variable
+     1>FittingRoom.cpp(614): warning C4101: 'dwThreadId' : unreferenced local variable
+     1>FittingRoom.cpp(776): warning C4018: '<' : signed/unsigned mismatch
+     1>FittingRoom.cpp(732): warning C4101: 'ps' : unreferenced local variable
+     1>FittingRoom.cpp(729): warning C4101: 'ptClientUL' : unreferenced local variable
+     1>FittingRoom.cpp(728): warning C4101: 'rcClient' : unreferenced local variable
+     1>FittingRoom.cpp(730): warning C4101: 'ptClientLR' : unreferenced local variable
+     1>FittingRoom.cpp(734): warning C4101: 'dwThreadId' : unreferenced local variable
+     1>FittingRoom.cpp(1180): warning C4996: 'itoa': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _itoa. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(867) : see declaration of 'itoa'
-     1>FittingRoom.cpp(1233): warning C4018: '<' : signed/unsigned mismatch
-     1>FittingRoom.cpp(1470): warning C4018: '<' : signed/unsigned mismatch
-     1>FittingRoom.cpp(1498): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>FittingRoom.cpp(1232): warning C4018: '<' : signed/unsigned mismatch
+     1>FittingRoom.cpp(1469): warning C4018: '<' : signed/unsigned mismatch
+     1>FittingRoom.cpp(1497): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(533) : see declaration of 'wcstombs'
-     1>FittingRoom.cpp(1620): warning C4018: '<' : signed/unsigned mismatch
-     1>FittingRoom.cpp(1643): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>FittingRoom.cpp(1550): warning C4018: '<' : signed/unsigned mismatch
+     1>FittingRoom.cpp(1573): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdlib.h(533) : see declaration of 'wcstombs'
-     1>FittingRoom.cpp(1713): warning C4018: '<' : signed/unsigned mismatch
+     1>FittingRoom.cpp(1643): warning C4018: '<' : signed/unsigned mismatch
          SpinigeController.cpp
      1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\opencv2\flann\logger.h(66): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
@@ -76,6 +79,7 @@
          All outputs are up-to-date.
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\Release\FittingRoom.exe" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Release\FittingRoom.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\Release\FittingRoom.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\Release\FittingRoom.lib" /MACHINE:X86 Release\FittingRoom.res
+         Release\Camera.obj
          Release\CamerasController.obj
          Release\FittingRoom.obj
          Release\SpinigeController.obj
@@ -92,4 +96,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:04.24
+Time Elapsed 00:00:05.08

@@ -22,3 +22,4 @@ const int folderPlaceholderWidth = 128;
 const int folderPlaceholderHeight = 192;
 const int hGap = 10;
 const int vGap = 10;
+const int FPS = 10;
