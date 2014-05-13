@@ -51,12 +51,13 @@ bool skipFindPicturesInFolder = false;
 vector <PictureProps> picturesInCurrentFolder;
 TCHAR szWindowClass_Session[MAX_LOADSTRING] = L"szWindowClass_Session"; // the main window class name
 ULONGLONG ticksAtTouchStart = 0;
+HANDLE firstPictureCached;
 // Session Window funcs
 BOOL CreateWindow_Session(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWindow);
 LRESULT CALLBACK WndProc_Session(HWND, UINT, WPARAM, LPARAM);
 void TouchEndHandler_Session();
 void drawSession(void * args);
-void findPicturesInCurrentFolder();
+void findPicturesInCurrentFolder(void * args);
 void gallerySelectFolder(int folderIndex);
 void galleryUnselectFolder(int folderIndex);
 #pragma endregion
@@ -76,6 +77,7 @@ void drawComparsion(void * args);
 void TouchEndHandler_Comparsion();
 int findPicturesInSelectedFolders();
 vector<PictureProps> picsToCompare[4];
+HANDLE threadHandles[4];
 #pragma endregion
 
 // my global variables
@@ -97,6 +99,14 @@ wchar_t *convertCharArrayToLPCWSTR(const char* charArray);
 void calculateScaledImageSize(int placeholderW, int placeholderH, int originalW, int originalH, int* newW, int* newH);
 IplImage *rotateImage(IplImage *src);
 void loadPicturesFromFolderIntoVector(int folderIndex, vector<PictureProps> *pics, int placeholderW, int placeholderH);
+struct FuncParams
+{
+	int folderIndex;
+	vector<PictureProps> *pics;
+	int placeholderW;
+	int placeholderH;
+};
+void loadPicturesFromFolderIntoVector2(void *params);
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
@@ -169,6 +179,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	HMONITOR monitor = MonitorFromPoint(point, MONITOR_DEFAULTTOPRIMARY);
 	if(!GetMonitorInfo(monitor, &monitorInfo))
 		return FALSE;
+
+	//create events
+	firstPictureCached = CreateEvent(NULL, true, false, L"firstPictureCached");
 
 	bool isShowInWindow = false;
 	bool mainWindowOk = CreateWindow_Main(monitorInfo, nCmdShow, isShowInWindow);
@@ -947,8 +960,9 @@ void TouchEndHandler_Session()
 		}
 	case TOUCH_MOVEMENT_LEFT:
 		{
-			sessionCurrentPictureIndex++;
-			if (sessionCurrentPictureIndex == picturesInCurrentFolder.size())
+			if (sessionCurrentPictureIndex + 1 < picturesInCurrentFolder.size())
+				sessionCurrentPictureIndex++;
+			else
 				sessionCurrentPictureIndex = 0;
 
 			sessionWindowNeedsRefresh = true;
@@ -956,8 +970,9 @@ void TouchEndHandler_Session()
 		}
 	case TOUCH_MOVEMENT_RIGHT:
 		{
-			sessionCurrentPictureIndex--;
-			if (sessionCurrentPictureIndex == -1)
+			if (sessionCurrentPictureIndex - 1 >= 0)
+				sessionCurrentPictureIndex--;
+			else if (picturesInCurrentFolder.size() > 0)
 				sessionCurrentPictureIndex = picturesInCurrentFolder.size() - 1;
 
 			sessionWindowNeedsRefresh = true;
@@ -995,25 +1010,50 @@ void TouchEndHandler_Comparsion()
 	case TOUCH_MOVEMENT_LEFT:
 		{
 			//MessageBox(hWnd_Comparsion, L"left", L"Error", MB_OK);
-			
-			comparsionCurreentPictureIndex++;
-			if (comparsionCurreentPictureIndex == picsToCompare[0].size())
-				comparsionCurreentPictureIndex = 0;
 
-			comparsionWindowNeedsRefresh = true;
+			//allow to switch pictures only when all 'loadPicturesFromFolderIntoVector2' threads finished 
+			bool allThreadsFinished = true;
+			//check threads statuses
+			for (int i = 0; i < 4; i++)
+			{
+				DWORD res = WaitForSingleObject(threadHandles[i], 0);
+				if (res == WAIT_TIMEOUT)
+					allThreadsFinished = false;
+			}
+
+			if (allThreadsFinished)
+			{
+				if (comparsionCurreentPictureIndex + 1 < picsToCompare[0].size())
+					comparsionCurreentPictureIndex++;
+				else
+					comparsionCurreentPictureIndex = 0;
 			
+				comparsionWindowNeedsRefresh = true;
+			}
 			break;
 		}
 	case TOUCH_MOVEMENT_RIGHT:
 		{
 			//MessageBox(hWnd_Comparsion, L"right", L"Error", MB_OK);
-			
-			comparsionCurreentPictureIndex--;
-			if (comparsionCurreentPictureIndex == -1)
-				comparsionCurreentPictureIndex = picsToCompare[0].size() - 1;
+			//allow to switch pictures only when all 'loadPicturesFromFolderIntoVector2' threads finished 
+			bool allThreadsFinished = true;
+			//check threads statuses
+			for (int i = 0; i < 4; i++)
+			{
+				DWORD res = WaitForSingleObject(threadHandles[i], 0);
+				if (res == WAIT_TIMEOUT)
+					allThreadsFinished = false;
+			}
 
-			comparsionWindowNeedsRefresh = true;
-			
+			if (allThreadsFinished)
+			{
+				if (comparsionCurreentPictureIndex - 1 >= 0)
+					comparsionCurreentPictureIndex--;
+				else if (picsToCompare[0].size() > 0)
+					comparsionCurreentPictureIndex = picsToCompare[0].size() - 1;
+
+				comparsionWindowNeedsRefresh = true;
+			}
 			break;
 		}
 	case -1:
@@ -1339,7 +1379,9 @@ void drawSession(void * args)
 		{
 			if (!skipFindPicturesInFolder)
 			{
-				findPicturesInCurrentFolder();
+				ResetEvent(firstPictureCached);
+				_beginthread(findPicturesInCurrentFolder, 0, NULL);
+				WaitForSingleObject(firstPictureCached, INFINITE);
 				skipFindPicturesInFolder = true;
 			}
 
@@ -1536,7 +1578,7 @@ void findFoldersWithPictures()
     }
 }
 /*=================================================================================================================================*/
-void findPicturesInCurrentFolder()
+void findPicturesInCurrentFolder(void * args)
 {
 	//get monitor size
 	const POINT ptZero = { 0, 0 };
@@ -1614,6 +1656,88 @@ void loadPicturesFromFolderIntoVector(int folderIndex, vector<PictureProps> *pic
 			cvReleaseImage(&imgOriginal);
 			delete[] asciiPathTojpg;
 			pics->push_back(pp);
+
+			//fire event after the first picture cached
+			DWORD eventState = WaitForSingleObject(firstPictureCached, 0);
+			if (eventState == WAIT_TIMEOUT)
+				SetEvent(firstPictureCached);
+        }while(::FindNextFile(hFind, &fd));
+        ::FindClose(hFind);
+    }
+}
+/*=================================================================================================================================*/
+void loadPicturesFromFolderIntoVector2(void *params)
+{
+	FuncParams * p = (FuncParams*)params;
+	int folderIndex = p->folderIndex;
+	vector<PictureProps> *pics = p->pics;
+	int placeholderW = p->placeholderW;
+	int placeholderH = p->placeholderH;
+
+	bool eventSent = false;
+	WIN32_FIND_DATA fd;
+	wstring searchPath= folders[folderIndex].name + L"\\*.jpg";
+	HANDLE hFind=::FindFirstFile(searchPath.c_str(), &fd);
+    if(hFind != INVALID_HANDLE_VALUE)
+    {
+        do{
+			wstring curFileName(fd.cFileName);
+			PictureProps pp = {curFileName, NULL};
+
+			//compose a path to the current picture
+			wstring pathTojpg = folders[folderIndex].name + L"\\" + curFileName;
+			wchar_t* wchart_pathTojpg = const_cast<wchar_t*>(pathTojpg.c_str());//convert wstring to char*
+			char* asciiPathTojpg = new char[wcslen(wchart_pathTojpg) + 1];
+			wcstombs(asciiPathTojpg, wchart_pathTojpg, wcslen(wchart_pathTojpg) + 1);
+			
+			//load from HDD
+			IplImage* imgOriginal = cvLoadImage(asciiPathTojpg, 1);
+			
+			//convert BGR -> RGB
+			char symb;
+			for (int j=0; j<imgOriginal->width * imgOriginal->height * 3; j+=3)
+			{
+				symb = imgOriginal->imageData[j+0];
+				imgOriginal->imageData[j+0] = imgOriginal->imageData[j+2];
+				imgOriginal->imageData[j+2] = symb;
+			}
+
+			//rotate
+			IplImage* imgRotated = rotateImage(imgOriginal);
+			
+			if (placeholderW != 0 && placeholderH != 0) // if "= 0" - no need to scale
+			{
+				//scale to fit a screen
+				int newWidth = 0, newHeight = 0;
+				calculateScaledImageSize(placeholderW, placeholderH, imgRotated->width, imgRotated->height, &newWidth, &newHeight);
+				IplImage* imgScaled = cvCreateImage(cvSize(newWidth,newHeight), imgRotated->depth, imgRotated->nChannels);
+				cvResize(imgRotated, imgScaled, CV_INTER_LINEAR);
+			
+				//flip
+				cvFlip(imgScaled);
+
+				cvReleaseImage(&imgRotated);
+
+				pp.image = imgScaled;
+			}
+			else
+			{
+				//flip
+				cvFlip(imgRotated);
+
+				pp.image = imgRotated;
+			}
+
+			cvReleaseImage(&imgOriginal);
+			delete[] asciiPathTojpg;
+			pics->push_back(pp);
+
+			//fire event after the first picture cached
+			if (!eventSent)
+			{
+				SetEvent(firstPictureCached);
+				eventSent = true;
+			}
         }while(::FindNextFile(hFind, &fd));
         ::FindClose(hFind);
     }
@@ -1644,7 +1768,13 @@ int findPicturesInSelectedFolders()
 	for (int i = 0; i < folders.size(); i++)
 		if (folders[i].marked == true)
 		{
-			loadPicturesFromFolderIntoVector(i, &picsToCompare[markedFolderCounter], monitorWidth / 2, (monitorHeight-(BACK_BUTTON_HEIGHT+5)) / 2);
+			//loadPicturesFromFolderIntoVector(i, &picsToCompare[markedFolderCounter], monitorWidth / 2, (monitorHeight-(BACK_BUTTON_HEIGHT+5)) / 2);
+
+			FuncParams params = {i, &picsToCompare[markedFolderCounter], monitorWidth / 2, (monitorHeight-(BACK_BUTTON_HEIGHT+5)) / 2};
+			ResetEvent(firstPictureCached);
+			threadHandles[markedFolderCounter] = (HANDLE)_beginthread(loadPicturesFromFolderIntoVector2, 0, &params);
+			WaitForSingleObject(firstPictureCached,INFINITE);
+
 			markedFolderCounter++;
 		}
 
