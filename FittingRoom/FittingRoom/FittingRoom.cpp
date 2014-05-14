@@ -98,7 +98,6 @@ int InitializeOpenGL(HWND _hWnd, int monitorWidth, int monitorHeight);
 wchar_t *convertCharArrayToLPCWSTR(const char* charArray);
 void calculateScaledImageSize(int placeholderW, int placeholderH, int originalW, int originalH, int* newW, int* newH);
 IplImage *rotateImage(IplImage *src);
-//void loadPicturesFromFolderIntoVector(int folderIndex, vector<PictureProps> *pics, int placeholderW, int placeholderH);
 void loadPicturesFromFolderIntoVector(void *params);
 struct ThreadFuncParams
 {
@@ -995,24 +994,17 @@ void TouchEndHandler_Comparsion()
 	case TOUCH_MOVEMENT_DOWN:
 		{
 			MessageBox(hWnd_Comparsion, L"down", L"Error", MB_OK);
-
-			//open the gallery window
-			//ShowWindow(hWndGallery, 1);
-			//galleryWindowNeedsRefresh = true;
 			break;
 		}
 	case TOUCH_MOVEMENT_UP:
 		{
 			MessageBox(hWnd_Comparsion, L"up", L"Error", MB_OK);
-			/*PostQuitMessage(0);
-			spinige.createSpinigeStorage(folders[sessionCurrentFolderIndex].name);*/
 			break;
 		}
 	case TOUCH_MOVEMENT_LEFT:
 		{
 			//MessageBox(hWnd_Comparsion, L"left", L"Error", MB_OK);
 
-			//allow to switch pictures only when all 'loadPicturesFromFolderIntoVector' threads finished 
 			bool allThreadsFinished = true;
 			//check threads statuses
 			for (int i = 0; i < 4; i++)
@@ -1022,6 +1014,7 @@ void TouchEndHandler_Comparsion()
 					allThreadsFinished = false;
 			}
 
+			//allow to switch pictures only when all 'loadPicturesFromFolderIntoVector' threads finished 
 			if (allThreadsFinished)
 			{
 				if (comparsionCurreentPictureIndex + 1 < picsToCompare[0].size())
@@ -1036,7 +1029,7 @@ void TouchEndHandler_Comparsion()
 	case TOUCH_MOVEMENT_RIGHT:
 		{
 			//MessageBox(hWnd_Comparsion, L"right", L"Error", MB_OK);
-			//allow to switch pictures only when all 'loadPicturesFromFolderIntoVector' threads finished 
+
 			bool allThreadsFinished = true;
 			//check threads statuses
 			for (int i = 0; i < 4; i++)
@@ -1046,6 +1039,7 @@ void TouchEndHandler_Comparsion()
 					allThreadsFinished = false;
 			}
 
+			//allow to switch pictures only when all 'loadPicturesFromFolderIntoVector' threads finished 
 			if (allThreadsFinished)
 			{
 				if (comparsionCurreentPictureIndex - 1 >= 0)
@@ -1479,15 +1473,18 @@ void drawComparsion(void * args)
 			int col = 0, row = 0;
 			for (int i = 0; i < markedFolderCounter; i++)
 			{
-				IplImage *imgScaled = picsToCompare[i][comparsionCurreentPictureIndex].image;
+				if (comparsionCurreentPictureIndex < picsToCompare[i].size())
+				{
+					IplImage *imgScaled = picsToCompare[i][comparsionCurreentPictureIndex].image;
 
-				//calculate coordinates
-				int curPictureX = imgScaled->width*col;
-				int curPictureY = monitorHeight - (BACK_BUTTON_HEIGHT+5) - imgScaled->height*(row+1);
+					//calculate coordinates
+					int curPictureX = imgScaled->width*col;
+					int curPictureY = monitorHeight - (BACK_BUTTON_HEIGHT+5) - imgScaled->height*(row+1);
 
-				glRasterPos2f(curPictureX, curPictureY);
-				//draw
-				glDrawPixels(imgScaled->width, imgScaled->height, GL_RGB, GL_UNSIGNED_BYTE, imgScaled->imageData);
+					glRasterPos2f(curPictureX, curPictureY);
+					//draw
+					glDrawPixels(imgScaled->width, imgScaled->height, GL_RGB, GL_UNSIGNED_BYTE, imgScaled->imageData);
+				}
 
 				col++;
 				if (col>columnsNumber-1)
@@ -1603,75 +1600,6 @@ void findPicturesInCurrentFolder()
 	_beginthread(loadPicturesFromFolderIntoVector, 0, &params);
 	WaitForSingleObject(firstPictureCached,INFINITE);
 }
-/*=================================================================================================================================*/
-//void loadPicturesFromFolderIntoVector(int folderIndex, vector<PictureProps> *pics, int placeholderW, int placeholderH)
-//{
-//	WIN32_FIND_DATA fd;
-//	wstring searchPath= folders[folderIndex].name + L"\\*.jpg";
-//	
-//	HANDLE hFind=::FindFirstFile(searchPath.c_str(), &fd);
-//    if(hFind != INVALID_HANDLE_VALUE)
-//    {
-//        do{
-//			wstring curFileName(fd.cFileName);
-//			PictureProps pp = {curFileName, NULL};
-//
-//			//compose a path to the current picture
-//			wstring pathTojpg = folders[folderIndex].name + L"\\" + curFileName;
-//			wchar_t* wchart_pathTojpg = const_cast<wchar_t*>(pathTojpg.c_str());//convert wstring to char*
-//			char* asciiPathTojpg = new char[wcslen(wchart_pathTojpg) + 1];
-//			wcstombs(asciiPathTojpg, wchart_pathTojpg, wcslen(wchart_pathTojpg) + 1);
-//			
-//			//load from HDD
-//			IplImage* imgOriginal = cvLoadImage(asciiPathTojpg, 1);
-//			
-//			//convert BGR -> RGB
-//			char symb;
-//			for (int j=0; j<imgOriginal->width * imgOriginal->height * 3; j+=3)
-//			{
-//				symb = imgOriginal->imageData[j+0];
-//				imgOriginal->imageData[j+0] = imgOriginal->imageData[j+2];
-//				imgOriginal->imageData[j+2] = symb;
-//			}
-//
-//			//rotate
-//			IplImage* imgRotated = rotateImage(imgOriginal);
-//			
-//			if (placeholderW != 0 && placeholderH != 0) // if "= 0" - no need to scale
-//			{
-//				//scale to fit a screen
-//				int newWidth = 0, newHeight = 0;
-//				calculateScaledImageSize(placeholderW, placeholderH, imgRotated->width, imgRotated->height, &newWidth, &newHeight);
-//				IplImage* imgScaled = cvCreateImage(cvSize(newWidth,newHeight), imgRotated->depth, imgRotated->nChannels);
-//				cvResize(imgRotated, imgScaled, CV_INTER_LINEAR);
-//			
-//				//flip
-//				cvFlip(imgScaled);
-//
-//				cvReleaseImage(&imgRotated);
-//
-//				pp.image = imgScaled;
-//			}
-//			else
-//			{
-//				//flip
-//				cvFlip(imgRotated);
-//
-//				pp.image = imgRotated;
-//			}
-//
-//			cvReleaseImage(&imgOriginal);
-//			delete[] asciiPathTojpg;
-//			pics->push_back(pp);
-//
-//			//fire event after the first picture cached
-//			DWORD eventState = WaitForSingleObject(firstPictureCached, 0);
-//			if (eventState == WAIT_TIMEOUT)
-//				SetEvent(firstPictureCached);
-//        }while(::FindNextFile(hFind, &fd));
-//        ::FindClose(hFind);
-//    }
-//}
 /*=================================================================================================================================*/
 void loadPicturesFromFolderIntoVector(void *params)
 {
@@ -1866,9 +1794,7 @@ void openGlDrawRect(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, unsigned int
 
     glPopMatrix();
 }
-/*=================================================================================================================================*/
-// Rotate the image clockwise (or counter-clockwise if negative).
-// Remember to free the returned image.
+/*=Rotate the image clockwise (or counter-clockwise if negative). Remember to free the returned image.=============================*/
 IplImage *rotateImage(IplImage *src)
 {
 	float angleDegrees = 90;
