@@ -1,53 +1,51 @@
-﻿Build started 13.05.2014 15:14:07.
+﻿Build started 14.05.2014 12:07:53.
      1>Project "C:\Users\Test\Documents\GitHub\FittingRoom\FittingRoom\FittingRoom\FittingRoom.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
-         Creating "Debug\FittingRoom.unsuccessfulbuild" because "AlwaysCreate" was specified.
+         Touching "Debug\FittingRoom.unsuccessfulbuild".
        ClCompile:
          All outputs are up-to-date.
          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\FittingRoom.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt FittingRoom.cpp
          FittingRoom.cpp
      1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\opencv2\flann\logger.h(66): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(234) : see declaration of 'fopen'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(187): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
      1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(188): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
      1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(189): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
      1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(190): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(402): warning C4101: 'ps' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(403): warning C4101: 'hdc' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(521): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(534): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(547): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(489): warning C4101: 'ps' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(486): warning C4101: 'ptClientUL' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(485): warning C4101: 'rcClient' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(487): warning C4101: 'ptClientLR' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(490): warning C4101: 'dwThreadId' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(674): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(626): warning C4101: 'ps' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(623): warning C4101: 'ptClientUL' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(622): warning C4101: 'rcClient' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(624): warning C4101: 'ptClientLR' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(628): warning C4101: 'dwThreadId' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(790): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(746): warning C4101: 'ps' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(743): warning C4101: 'ptClientUL' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(742): warning C4101: 'rcClient' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(744): warning C4101: 'ptClientLR' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(748): warning C4101: 'dwThreadId' : unreferenced local variable
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(963): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1026): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1221): warning C4996: 'itoa': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _itoa. See online help for details.
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(191): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(403): warning C4101: 'ps' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(404): warning C4101: 'hdc' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(522): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(535): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(548): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(490): warning C4101: 'ps' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(487): warning C4101: 'ptClientUL' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(486): warning C4101: 'rcClient' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(488): warning C4101: 'ptClientLR' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(491): warning C4101: 'dwThreadId' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(675): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(627): warning C4101: 'ps' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(624): warning C4101: 'ptClientUL' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(623): warning C4101: 'rcClient' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(625): warning C4101: 'ptClientLR' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(629): warning C4101: 'dwThreadId' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(791): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(747): warning C4101: 'ps' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(744): warning C4101: 'ptClientUL' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(743): warning C4101: 'rcClient' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(745): warning C4101: 'ptClientLR' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(749): warning C4101: 'dwThreadId' : unreferenced local variable
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(964): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1027): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1222): warning C4996: 'itoa': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _itoa. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdlib.h(867) : see declaration of 'itoa'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1273): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1512): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1540): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1274): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1514): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1542): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdlib.h(533) : see declaration of 'wcstombs'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1593): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1616): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1595): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1698): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdlib.h(533) : see declaration of 'wcstombs'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1691): warning C4996: 'wcstombs': This function or variable may be unsafe. Consider using wcstombs_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdlib.h(533) : see declaration of 'wcstombs'
-     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1768): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\test\documents\github\fittingroom\fittingroom\fittingroom\fittingroom.cpp(1775): warning C4018: '<' : signed/unsigned mismatch
        ResourceCompile:
          All outputs are up-to-date.
        ManifestResourceCompile:
@@ -73,4 +71,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:02.49
+Time Elapsed 00:00:02.26
