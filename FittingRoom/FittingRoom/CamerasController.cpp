@@ -208,14 +208,10 @@ void CamerasController::savePicturesFromActiveCamerasToDisc()
 			if (result == 1)
 			{
 				//success
+				IplImage *img = cvCreateImage(cvSize(PICTURE_WIDTH, PICTURE_HEIGHT), 8, 3);
+				img->imageData = curCameraBuffer;
+				cvFlip(img,img,0);
 
-				//create a directory for pictures after a camera has been successfully read
-				if(!directoryIsCreated)
-				{
-					CreateDirectory(convertCharArrayToLPCWSTR(foldername), NULL);
-					directoryIsCreated = true;
-				}
-				
 				//convert BGR -> RGB
 				char symb;
 				for (int j=0; j<PICTURE_SIZE; j+=3)
@@ -225,6 +221,26 @@ void CamerasController::savePicturesFromActiveCamerasToDisc()
 					curCameraBuffer[j+2] = symb;
 				}
 
+				//create a directory for pictures after the first camera has been successfully read
+				if(!directoryIsCreated)
+				{
+					CreateDirectory(convertCharArrayToLPCWSTR(foldername), NULL);
+
+					//resize for thumbnail and save as BMP
+					int scaledImgWidth = 0;
+					int scaledImgHeight = 0;
+					calculateScaledImageSize(folderPlaceholderHeight, folderPlaceholderWidth, img->width, img->height, &scaledImgWidth, &scaledImgHeight);
+					IplImage* imgScaled = cvCreateImage(cvSize(scaledImgWidth,scaledImgHeight), img->depth, img->nChannels);
+					cvResize(img, imgScaled, CV_INTER_LINEAR);
+					char thumbnailPath[100];
+					strcpy(thumbnailPath, foldername);
+					strcat(thumbnailPath, "\\thumbnail.bmp");
+					cvSaveImage(thumbnailPath, imgScaled);
+					cvReleaseImage(&imgScaled);
+
+					directoryIsCreated = true;
+				}
+				
 				//form a name for the file to which we're going to save a picture
 				char filename[10];
 				itoa(fileCounter, filename, 10);
@@ -237,9 +253,6 @@ void CamerasController::savePicturesFromActiveCamerasToDisc()
 				strcat(fullPath, filename);
 				
 				//save a picture as a JPEG
-				IplImage *img = cvCreateImage(cvSize(PICTURE_WIDTH, PICTURE_HEIGHT), 8, 3);
-				img->imageData = curCameraBuffer;
-				cvFlip(img,img,0);
 				int res = cvSaveImage(fullPath, img, p);
 				if (res == 0)
 				{
@@ -261,4 +274,21 @@ wchar_t *CamerasController::convertCharArrayToLPCWSTR(const char* charArray)
     wchar_t* wString=new wchar_t[4096];
     MultiByteToWideChar(CP_ACP, 0, charArray, -1, wString, 4096);
     return wString;
+}
+/*=================================================================================================================================*/
+void CamerasController::calculateScaledImageSize(int placeholderW, int placeholderH, int originalW, int originalH, int* newW, int* newH)
+{
+	float placeholderAspectRatio = (float)placeholderW / (float)placeholderH;
+	float originalAspectRatio = (float)originalW / (float)originalH;
+
+	if (placeholderAspectRatio >= originalAspectRatio)
+	{
+		*newH = placeholderH;
+		*newW = originalAspectRatio * placeholderH;
+	}
+	else
+	{
+		*newW = placeholderW;
+		*newH = placeholderW / originalAspectRatio;
+	}
 }

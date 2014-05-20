@@ -27,6 +27,7 @@ class CamerasController
 		wchar_t *convertCharArrayToLPCWSTR(const char* charArray);
 		int getNextLeftCameraIndex(int cameraIndex);
 		int getNextRightCameraIndex(int cameraIndex);
+		void calculateScaledImageSize(int placeholderW, int placeholderH, int originalW, int originalH, int* newW, int* newH);
 	public:
 		// variables
 		Camera *LeftCamera;

@@ -111,7 +111,7 @@ bool SpinigeController::loadPicturesFromFolderIntoArray(char *data, BYTE *imageC
 	return result;
 }
 
-void SpinigeController::createSpinigeStorage(wstring folderName)
+void SpinigeController::sendToSpinige(wstring folderName)
 {
 	unsigned int dataSize = 0;
 
@@ -184,12 +184,12 @@ void process_http(SOCKET S, char *host, char *page, char *data, int dataLength)
 	//TODO check res > 0
 	int res = send(S, sendline, httpHeaderLength + dataLength, 0);
 
-	//char buff[1024];
-	//recv(S,buff,1024,0);
-	//ofstream out ("out.txt", ios::out);
-	//for(int i = 0; i < 1024; i++)
-	//	out<<buff[i];
-	//out.close();
+	char buff[1024];
+	recv(S,buff,1024,0);
+	/*ofstream out ("out.txt", ios::out);
+	for(int i = 0; i < 1024; i++)
+		out<<buff[i];
+	out.close();*/
 
 	 delete[] sendline;
 }

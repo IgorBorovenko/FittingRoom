@@ -12,8 +12,8 @@ class SpinigeController
 public:
 	SpinigeController(void);
 	~SpinigeController(void);
-	void createSpinigeStorage(wstring folderName);
-	bool SpinigeController::loadPicturesFromFolderIntoArray(char *data, BYTE *imageCount, UINT *imageSizes, wstring folderName);
+	void sendToSpinige(wstring folderName);
+	bool loadPicturesFromFolderIntoArray(char *data, BYTE *imageCount, UINT *imageSizes, wstring folderName);
 
 #pragma pack(push,1)
 	struct SpinigeHeader

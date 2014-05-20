@@ -11,12 +11,14 @@ HDC hDc_Main;
 HWND hWnd_Main;
 bool mainWindowNeedsRefresh = false;
 TCHAR szWindowClass_Main[MAX_LOADSTRING]; // the main window class name
+bool showMainUpDownHints = false;
+bool showMainLeftRightHints = false;
 // Main Window funcs
 void drawMain(void * args);
 BOOL CreateWindow_Main(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWindow);
 LRESULT CALLBACK WndProc_Main(HWND, UINT, WPARAM, LPARAM);
 void TouchEndHandler_Main();
-void openGlDrawText(GLfloat x, GLfloat y, char* text, float size);
+void showMainHints(void * args);
 #pragma endregion
 
 #pragma region Gallery Window 
@@ -30,13 +32,14 @@ bool galleryWindowNeedsRefresh = false;
 bool skipFindFolders = false;
 TCHAR szWindowClass_Gallery[MAX_LOADSTRING] = L"szWindowClass_Gallery"; // the main window class name
 bool showCountdownWarning = false;
+bool showGalleryTapLongPressHints = false;
 // Gallery Window funcs
 BOOL CreateWindow_Gallery(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWindow);
 LRESULT CALLBACK WndProc_Gallery(HWND, UINT, WPARAM, LPARAM);
 void drawGallery(void * args);
 void findFoldersWithPictures();
 void takeSnapshots(void * args);
-void openGlDrawRect(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, unsigned int rgba);
+void showGalleryHints(void * args);
 #pragma endregion
 
 #pragma region Session Window 
@@ -52,6 +55,10 @@ vector <PictureProps> picturesInCurrentFolder;
 TCHAR szWindowClass_Session[MAX_LOADSTRING] = L"szWindowClass_Session"; // the main window class name
 ULONGLONG ticksAtTouchStart = 0;
 HANDLE firstPictureCached;
+bool showSpinigeWarning = false;
+bool showSessionUpHints = false;
+bool showSessionLeftRightHints = false;
+
 // Session Window funcs
 BOOL CreateWindow_Session(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWindow);
 LRESULT CALLBACK WndProc_Session(HWND, UINT, WPARAM, LPARAM);
@@ -60,6 +67,8 @@ void drawSession(void * args);
 void findPicturesInCurrentFolder();
 void gallerySelectFolder(int folderIndex);
 void galleryUnselectFolder(int folderIndex);
+void saveToSpinige(void * args);
+void showSessionHints(void * args);
 #pragma endregion
 
 #pragma region Comparsion Window
@@ -68,19 +77,29 @@ HDC hDc_Comparsion;
 HWND hWnd_Comparsion;
 TCHAR szWindowClass_Comparsion[MAX_LOADSTRING] = L"szWindowClass_Comparsion"; // the main window class name
 bool comparsionWindowNeedsRefresh = false;
-int comparsionCurreentPictureIndex = -1;
+int comparsionCurrentPictureIndex = -1;
 bool skipFindPicturesInSelectedFolder = false;
+vector<PictureProps> picsToCompare[4];
+HANDLE threadHandles[4];
+bool showComparsionLeftRightHints = false;
 // Comparsion Window funcs
 BOOL CreateWindow_Comparsion(MONITORINFO monitorInfo, int nCmdShow, bool isShowInWindow);
 LRESULT CALLBACK WndProc_Comparsion(HWND, UINT, WPARAM, LPARAM);
 void drawComparsion(void * args);
 void TouchEndHandler_Comparsion();
 int findPicturesInSelectedFolders();
-vector<PictureProps> picsToCompare[4];
-HANDLE threadHandles[4];
+void showComparsionHints(void * args);
+
 #pragma endregion
 
 // my global variables
+struct ThreadFuncParams
+{
+	int folderIndex;
+	vector<PictureProps> *pics;
+	int placeholderW;
+	int placeholderH;
+};
 HINSTANCE hInst; // current instance
 bool finishAllThreads = false;
 TCHAR szTitle[MAX_LOADSTRING];	// The title bar text
@@ -99,13 +118,8 @@ wchar_t *convertCharArrayToLPCWSTR(const char* charArray);
 void calculateScaledImageSize(int placeholderW, int placeholderH, int originalW, int originalH, int* newW, int* newH);
 IplImage *rotateImage(IplImage *src);
 void loadPicturesFromFolderIntoVector(void *params);
-struct ThreadFuncParams
-{
-	int folderIndex;
-	vector<PictureProps> *pics;
-	int placeholderW;
-	int placeholderH;
-};
+void openGlDrawText(GLfloat x, GLfloat y, char* text, float size);
+void openGlDrawRect(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, unsigned int rgba);
 
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
@@ -140,6 +154,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	{
 		Cameras.StartAllCameras();
 		_beginthread(drawMain, 0, NULL);
+		_beginthread(showMainHints, 0, NULL);
 	}
 
 	//start gallery display thread
@@ -560,6 +575,7 @@ LRESULT CALLBACK WndProc_Gallery(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 							sessionCurrentFolderIndex = folderIndex;
 							sessionCurrentPictureIndex = 0;
 							skipFindPicturesInFolder = false;
+							_beginthread(showSessionHints, 0, NULL);
 							sessionWindowNeedsRefresh = true;
 						}
 
@@ -578,14 +594,14 @@ LRESULT CALLBACK WndProc_Gallery(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			{
 				case GALLERY_BACK_BUTTON:
 					Cameras.StartAllCameras();
-					ShowWindow(hWnd_Gallery, 0);
-					ShowWindow(hWnd_Main, 1);
+					ShowWindow(hWnd_Gallery, SW_HIDE);
+					ShowWindow(hWnd_Main, SW_SHOW);
 					UpdateWindow(hWnd_Main);
 					break;
 				case GALLERY_COMPARE_BUTTON:
 					//ShowWindow(hWnd_Gallery, SW_HIDE);
-
-					comparsionCurreentPictureIndex = 0;
+					_beginthread(showComparsionHints, 0, NULL);
+					comparsionCurrentPictureIndex = 0;
 					skipFindPicturesInSelectedFolder = false;
 					ShowWindow(hWnd_Comparsion, SW_SHOW);
 					UpdateWindow(hWnd_Comparsion);
@@ -601,8 +617,8 @@ LRESULT CALLBACK WndProc_Gallery(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 		//	EndPaint(hWnd, &ps);
 		//	break;
 		case WM_CLOSE:
-			ShowWindow(hWnd_Gallery, 0);
-			ShowWindow(hWnd_Main, 1);
+			ShowWindow(hWnd_Gallery, SW_HIDE);
+			ShowWindow(hWnd_Main, SW_SHOW);
 			UpdateWindow(hWnd_Main);
 			break;
 		case WM_DESTROY:
@@ -722,8 +738,9 @@ LRESULT CALLBACK WndProc_Session(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			//EndPaint(hWnd, &ps);
 			//break;
 		case WM_CLOSE:
-			ShowWindow(hWnd_Session, 0);
-			ShowWindow(hWnd_Gallery, 1);
+			sessionCurrentPictureIndex = -1;
+			ShowWindow(hWnd_Session, SW_HIDE);
+			ShowWindow(hWnd_Gallery, SW_SHOW);
 			UpdateWindow(hWnd_Gallery);
 			break;
 		case WM_DESTROY:
@@ -821,7 +838,7 @@ LRESULT CALLBACK WndProc_Comparsion(HWND hWnd, UINT message, WPARAM wParam, LPAR
 			{
 				case COMPARSION_BACK_BUTTON:
 				{
-					comparsionCurreentPictureIndex = -1;
+					comparsionCurrentPictureIndex = -1;
 					ShowWindow(hWnd_Comparsion, SW_HIDE);
 					ShowWindow(hWnd_Gallery, SW_SHOW);
 					UpdateWindow(hWnd_Gallery);
@@ -916,9 +933,11 @@ void TouchEndHandler_Main()
 			}
 			case TOUCH_MOVEMENT_DOWN:
 				Cameras.StopAllCameras();
-				ShowWindow(hWnd_Main, 0);
-				ShowWindow(hWnd_Gallery, 1);
+				ShowWindow(hWnd_Main, SW_HIDE);
+				ShowWindow(hWnd_Gallery, SW_SHOW);
 				UpdateWindow(hWnd_Gallery);
+				_beginthread(showGalleryHints, 0, NULL);
+				skipFindFolders = false;
 				galleryWindowNeedsRefresh = true;
 				break;
 			case TOUCH_MOVEMENT_LEFT:
@@ -955,7 +974,8 @@ void TouchEndHandler_Session()
 		{
 			/*MessageBox(hWndMain, L"up (close application)", L"Error", MB_OK);
 			PostQuitMessage(0);*/
-			spinige.createSpinigeStorage(folders[sessionCurrentFolderIndex].name);
+			
+				_beginthread(saveToSpinige, 0, NULL);
 			break;
 		}
 	case TOUCH_MOVEMENT_LEFT:
@@ -1017,10 +1037,10 @@ void TouchEndHandler_Comparsion()
 			//allow to switch pictures only when all 'loadPicturesFromFolderIntoVector' threads finished 
 			if (allThreadsFinished)
 			{
-				if (comparsionCurreentPictureIndex + 1 < picsToCompare[0].size())
-					comparsionCurreentPictureIndex++;
+				if (comparsionCurrentPictureIndex + 1 < picsToCompare[0].size())
+					comparsionCurrentPictureIndex++;
 				else
-					comparsionCurreentPictureIndex = 0;
+					comparsionCurrentPictureIndex = 0;
 			
 				comparsionWindowNeedsRefresh = true;
 			}
@@ -1042,10 +1062,10 @@ void TouchEndHandler_Comparsion()
 			//allow to switch pictures only when all 'loadPicturesFromFolderIntoVector' threads finished 
 			if (allThreadsFinished)
 			{
-				if (comparsionCurreentPictureIndex - 1 >= 0)
-					comparsionCurreentPictureIndex--;
+				if (comparsionCurrentPictureIndex - 1 >= 0)
+					comparsionCurrentPictureIndex--;
 				else if (picsToCompare[0].size() > 0)
-					comparsionCurreentPictureIndex = picsToCompare[0].size() - 1;
+					comparsionCurrentPictureIndex = picsToCompare[0].size() - 1;
 
 				comparsionWindowNeedsRefresh = true;
 			}
@@ -1207,6 +1227,24 @@ void drawMain(void * args)
 			
 			glDrawPixels(PICTURE_HEIGHT, PICTURE_WIDTH, GL_RGB, GL_UNSIGNED_BYTE, finalBuffer);
 			
+			if (showMainUpDownHints)
+			{
+				//draw a background
+				openGlDrawRect(0,1400, monitorWidth, 1580, 0x0f0f0fff);
+				//draw a text
+				openGlDrawText(15, 1500, "SLIDE UP TO VISIT THE GALLERY", 0.3);
+				openGlDrawText(15, 1450, "SLIDE DOWN TO TAKE PICTURES", 0.3);
+			}
+
+			if (showMainLeftRightHints)
+			{
+				//draw a background
+				openGlDrawRect(0,1400, monitorWidth, 1580, 0x0f0f0fff);
+				//draw a text
+				openGlDrawText(15, 1500, "SLIDE LEFT / RIGHT TO SEE YOURSELF", 0.3);
+				openGlDrawText(15, 1450, "FROM ANOTHER VIEWPOINT", 0.3);
+			}
+
 			if (showCountdownWarning)
 			{
 				if (snapshotWarningStatus > 0)
@@ -1258,8 +1296,11 @@ void drawGallery(void * args)
 			//clear the screen
 			openGlDrawRect(0,0, monitorWidth, (monitorHeight-(BACK_BUTTON_HEIGHT+5)), 0x000000ff);
 
-			if (skipFindFolders == false)
+			if (!skipFindFolders)
+			{
 				findFoldersWithPictures();
+				skipFindFolders = true;
+			}
 
 			const int columnsNumber = monitorWidth/(folderPlaceholderWidth + hGap);
 			const int rowsNumber = (monitorHeight-(BACK_BUTTON_HEIGHT+5))/(folderPlaceholderHeight+vGap);
@@ -1269,41 +1310,6 @@ void drawGallery(void * args)
 			{
 				if (row < rowsNumber)
 				{
-					/*
-					//compose a path to 1.jpg
-					wstring pathTo1jpg = folders[i].name;
-					wstring s2 (L"\\1.jpg");
-					pathTo1jpg = pathTo1jpg+s2;
-					wchar_t* wchart_pathTo1jpg = const_cast<wchar_t*>(pathTo1jpg.c_str()); //convert wstring to char*
-					char* asciiPathTo1jpg = new char[wcslen(wchart_pathTo1jpg) + 1];
-					wcstombs(asciiPathTo1jpg, wchart_pathTo1jpg, wcslen(wchart_pathTo1jpg) + 1 );
-
-					//read from HDD
-					IplImage* imgOriginal = cvLoadImage(asciiPathTo1jpg, 1);
-
-					//convert BGR -> RGB
-					char symb;
-					for (int j=0; j<imgOriginal->width * imgOriginal->height * 3; j+=3)
-					{
-						symb = imgOriginal->imageData[j+0];
-						imgOriginal->imageData[j+0] = imgOriginal->imageData[j+2];
-						imgOriginal->imageData[j+2] = symb;
-					}
-
-					//rotate
-					IplImage* imgRotated = rotateImage(imgOriginal);
-
-					//scale to fit a placeholder
-					int scaledImgWidth = 0;
-					int scaledImgHeight = 0;
-					calculateScaledImageSize(folderPlaceholderWidth, folderPlaceholderHeight, imgRotated->width, imgRotated->height, &scaledImgWidth, &scaledImgHeight);
-					IplImage* imgScaled = cvCreateImage(cvSize(scaledImgWidth,scaledImgHeight), imgRotated->depth, imgRotated->nChannels);
-					cvResize(imgRotated, imgScaled, CV_INTER_LINEAR);
-
-					//flip
-					cvFlip(imgScaled);
-					*/
-
 					IplImage *imgScaled = folders[i].thumbnail;
 
 					//calculate coordinates
@@ -1339,10 +1345,18 @@ void drawGallery(void * args)
 				}
 			}
 			
+			if (showGalleryTapLongPressHints)
+			{
+				//draw a background
+				openGlDrawRect(0,1400, monitorWidth, 1580, 0x0f0f0fff);
+				//draw text
+				openGlDrawText(15, 1500, "TAP ON PREVIEW TO SEE FULL SIZE", 0.3);
+				openGlDrawText(15, 1450, "LONG PRESS TO ADD TO COMPARISON", 0.3);
+			}
+
 			SwapBuffers(hDc_Gallery);
-			InvalidateRect(hWnd_Gallery, NULL, false);
+			//InvalidateRect(hWnd_Gallery, NULL, false);
 			galleryWindowNeedsRefresh = false;
-			skipFindFolders = false;
 		} 
 	}
 }
@@ -1368,7 +1382,7 @@ void drawSession(void * args)
 
 	while(!finishAllThreads)
 	{
-		if (!sessionWindowNeedsRefresh)
+		if (!(sessionWindowNeedsRefresh && sessionCurrentPictureIndex != -1))
 			Sleep(50);
 		else
 		{
@@ -1418,6 +1432,31 @@ void drawSession(void * args)
 			//draw
 			glDrawPixels(imgScaled->width, imgScaled->height, GL_RGB, GL_UNSIGNED_BYTE, imgScaled->imageData);
 
+			if (showSessionUpHints)
+			{
+				//draw a background
+				openGlDrawRect(0,1400, monitorWidth, 1580, 0x0f0f0fff);
+				//draw a text
+				openGlDrawText(15, 1500, "SLIDE UP TO SEND TO SPINIGE", 0.3);
+			}
+
+			if (showSessionLeftRightHints)
+			{
+				//draw a background
+				openGlDrawRect(0,1400, monitorWidth, 1580, 0x0f0f0fff);
+				//draw a text
+				openGlDrawText(15, 1500, "SLIDE LEFT OR RIGHT TO SEE FROM", 0.3);
+				openGlDrawText(15, 1450, "ANOTHER VIEWPOINT", 0.3);
+			}
+
+			if (showSpinigeWarning)
+			{
+				//draw a background
+				openGlDrawRect(0,180, monitorWidth, 310, 0x0f0f0fff);
+				//draw a text
+				openGlDrawText(15, 230, "SENDING TO SPINIGE...", 0.5);
+			}
+
 			SwapBuffers(hDc_Session);
 
 			//free the used memory
@@ -1457,7 +1496,7 @@ void drawComparsion(void * args)
 
 	while(!finishAllThreads)
 	{
-		if (!comparsionWindowNeedsRefresh)
+		if (!(comparsionWindowNeedsRefresh && comparsionCurrentPictureIndex != -1))
 			Sleep(50);
 		else
 		{
@@ -1473,9 +1512,9 @@ void drawComparsion(void * args)
 			int col = 0, row = 0;
 			for (int i = 0; i < markedFolderCounter; i++)
 			{
-				if (comparsionCurreentPictureIndex < picsToCompare[i].size())
+				if (comparsionCurrentPictureIndex < picsToCompare[i].size())
 				{
-					IplImage *imgScaled = picsToCompare[i][comparsionCurreentPictureIndex].image;
+					IplImage *imgScaled = picsToCompare[i][comparsionCurrentPictureIndex].image;
 
 					//calculate coordinates
 					int curPictureX = imgScaled->width*col;
@@ -1494,6 +1533,15 @@ void drawComparsion(void * args)
 				}
 			}
 			
+			if (showComparsionLeftRightHints)
+			{
+				//draw a background
+				openGlDrawRect(0,1400, monitorWidth, 1580, 0x0f0f0fff);
+				//draw a text
+				openGlDrawText(15, 1500, "SLIDE LEFT OR RIGHT TO SEE FROM", 0.3);
+				openGlDrawText(15, 1450, "ANOTHER VIEWPOINT", 0.3);
+			}
+
 			SwapBuffers(hDc_Comparsion);
 
 			//InvalidateRect(hWnd_Session, NULL, false);
@@ -1523,7 +1571,7 @@ void findFoldersWithPictures()
 			if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
 				wstring s1(fd.cFileName);
-				wstring s2(L"\\1.jpg");
+				wstring s2(L"\\thumbnail.bmp");
 				s1 = s1 + s2;
 				WIN32_FIND_DATA fd2;
 				//find 1.jpg in the current directory
@@ -1534,12 +1582,12 @@ void findFoldersWithPictures()
 					FolderProps fp = {s3, {0,0,0,0}, false, NULL};
 
 					//convert wstring to char*
-					wchar_t* wchart_pathTo1jpg = const_cast<wchar_t*>(s1.c_str()); //convert wstring to char*
-					char* asciiPathTo1jpg = new char[wcslen(wchart_pathTo1jpg) + 1];
-					wcstombs(asciiPathTo1jpg, wchart_pathTo1jpg, wcslen(wchart_pathTo1jpg) + 1 );
+					wchar_t* wchart_pathToThumbnail = const_cast<wchar_t*>(s1.c_str()); //convert wstring to char*
+					char* asciiPathToThumbnail = new char[wcslen(wchart_pathToThumbnail) + 1];
+					wcstombs(asciiPathToThumbnail, wchart_pathToThumbnail, wcslen(wchart_pathToThumbnail) + 1 );
 
-					//load 1.jpg
-					IplImage* imgOriginal = cvLoadImage(asciiPathTo1jpg, 1);
+					//load thumbnail
+					IplImage* imgOriginal = cvLoadImage(asciiPathToThumbnail, 1);
 
 					//convert BGR -> RGB
 					char symb;
@@ -1553,13 +1601,14 @@ void findFoldersWithPictures()
 					//rotate
 					IplImage* imgRotated = rotateImage(imgOriginal);
 
+					/*
 					//scale to fit a placeholder
 					int scaledImgWidth = 0;
 					int scaledImgHeight = 0;
 					calculateScaledImageSize(folderPlaceholderWidth, folderPlaceholderHeight, imgRotated->width, imgRotated->height, &scaledImgWidth, &scaledImgHeight);
 					IplImage* imgScaled = cvCreateImage(cvSize(scaledImgWidth,scaledImgHeight), imgRotated->depth, imgRotated->nChannels);
 					cvResize(imgRotated, imgScaled, CV_INTER_LINEAR);
-
+					
 					//flip
 					cvFlip(imgScaled);
 
@@ -1569,6 +1618,13 @@ void findFoldersWithPictures()
 					delete[] asciiPathTo1jpg;
 
 					fp.thumbnail = imgScaled;
+					folders.push_back(fp);
+					*/
+
+					cvFlip(imgRotated);
+					cvReleaseImage(&imgOriginal);
+					delete[] asciiPathToThumbnail;
+					fp.thumbnail = imgRotated;
 					folders.push_back(fp);
 				}
 			}
@@ -1766,6 +1822,15 @@ void takeSnapshots(void * args)
 	showCountdownWarning = false;
 }
 /*=================================================================================================================================*/
+void saveToSpinige(void * args)
+{
+	showSpinigeWarning = true;
+	sessionWindowNeedsRefresh = true;
+	spinige.sendToSpinige(folders[sessionCurrentFolderIndex].name);
+	showSpinigeWarning = false;
+	sessionWindowNeedsRefresh = true;
+}
+/*=================================================================================================================================*/
 void openGlDrawText(GLfloat x, GLfloat y, char* text, float size)
 {
     glPushMatrix();
@@ -1824,4 +1889,44 @@ IplImage *rotateImage(IplImage *src)
 	cvGetQuadrangleSubPix( src, imageRotated, &M);
 
 	return imageRotated;
+}
+/*=================================================================================================================================*/
+void showMainHints(void * args)
+{
+	showMainUpDownHints = true;
+	Sleep(10000);
+	showMainUpDownHints = false;
+
+	showMainLeftRightHints = true;
+	Sleep(10000);
+	showMainLeftRightHints = false;
+}
+/*=================================================================================================================================*/
+void showGalleryHints(void * args)
+{
+	showGalleryTapLongPressHints = true;
+	Sleep(10000);
+	showGalleryTapLongPressHints = false;
+	galleryWindowNeedsRefresh = true;
+}
+/*=================================================================================================================================*/
+void showSessionHints(void * args)
+{
+	showSessionUpHints = true;
+	Sleep(10000);
+	showSessionUpHints = false;
+
+	showSessionLeftRightHints = true;
+	sessionWindowNeedsRefresh = true;
+	Sleep(10000);
+	showSessionLeftRightHints = false;
+	sessionWindowNeedsRefresh = true;
+}
+/*=================================================================================================================================*/
+void showComparsionHints(void * args)
+{
+	showComparsionLeftRightHints = true;
+	Sleep(10000);
+	showComparsionLeftRightHints = false;
+	comparsionWindowNeedsRefresh = true;
 }
